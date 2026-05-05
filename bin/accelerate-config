@@ -1,0 +1,7 @@
+#!/Users/henleylau/Metacode/用户评价系统开发/app-development/emotion-widget/venv/bin/python3.14
+import sys
+from accelerate.commands.config import main
+if __name__ == '__main__':
+    if sys.argv[0].endswith('.exe'):
+        sys.argv[0] = sys.argv[0][:-4]
+    sys.exit(main())

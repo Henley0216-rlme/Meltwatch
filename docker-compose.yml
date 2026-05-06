@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: reviewpulse-db
+    environment:
+      POSTGRES_USER: reviewpulse
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-reviewpulse_secret}
+      POSTGRES_DB: reviewpulse
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reviewpulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reviewpulse-backend
+    environment:
+      DATABASE_URL: postgresql://reviewpulse:${DB_PASSWORD:-reviewpulse_secret}@db:5432/reviewpulse
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      EMOTION_MODEL: ${EMOTION_MODEL:-uer/roberta-base-finetuned-dianping-chinese}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - model_cache:/root/.cache/huggingface
+
+  frontend:
+    image: nginx:alpine
+    container_name: reviewpulse-frontend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  model_cache:

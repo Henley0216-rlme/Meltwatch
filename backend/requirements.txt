@@ -8,3 +8,7 @@ aliyun-python-sdk-core==2.15.1
 aliyun-python-sdk-nlp-automl==1.0.4
 python-dotenv==1.0.0
 gunicorn==21.2.0
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+pyjwt==2.8.0
+werkzeug==3.0.1

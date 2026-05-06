@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Emotion Widget 后端服务
-使用本地开源模型进行情绪/情感分析
+ReviewPulse Backend API
+Emotion analysis API with user authentication
 """
 
 import os
@@ -11,73 +11,79 @@ from flask_cors import CORS
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from functools import lru_cache
 
+# Import routes
+from routes.auth import auth_bp
+from routes.user import user_bp
+
+# Import database
+from models.database import init_db
+
 app = Flask(__name__)
 CORS(app)
 
-# 模型配置
+# Model configuration
 MODEL_NAME = os.environ.get('EMOTION_MODEL', 'uer/roberta-base-finetuned-dianping-chinese')
 
-# 情绪/情感标签映射（二分类：正面/负面）
+# Emotion/Sentiment label mapping
 EMOTION_MAP = {
     "正面": {"icon": "😊", "label": "满意", "category": "positive", "color": "#4caf50"},
     "负面": {"icon": "😞", "label": "不满", "category": "negative", "color": "#f44336"},
 }
 
-# 全局模型和分词器
+# Global model and tokenizer
 model = None
 tokenizer = None
 
 
 def load_model():
-    """加载本地模型"""
+    """Load local model"""
     global model, tokenizer
     if model is None:
-        print(f"🔄 加载模型: {MODEL_NAME}")
+        print(f"🔄 Loading model: {MODEL_NAME}")
         tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
         model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
         model.eval()
-        print("✅ 模型加载完成")
+        print("✅ Model loaded successfully")
 
 
 @lru_cache(maxsize=1)
 def get_cached_device():
-    """获取最佳设备"""
+    """Get optimal device"""
     return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def analyze_local(text):
     """
-    使用本地模型进行情绪分析
-    
+    Analyze sentiment using local model
+
     Args:
-        text: 待分析的文本
-    
+        text: Text to analyze
+
     Returns:
-        dict: 情绪分析结果
+        dict: Analysis result
     """
     if model is None:
         load_model()
-    
+
     device = get_cached_device()
     model.to(device)
-    
-    # 分词
+
+    # Tokenize
     inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
     inputs = {k: v.to(device) for k, v in inputs.items()}
-    
-    # 推理
+
+    # Inference
     with torch.no_grad():
         outputs = model(**inputs)
         probs = torch.softmax(outputs.logits, dim=-1)[0]
-    
-    # 获取预测结果
+
+    # Get prediction
     pred_idx = torch.argmax(probs).item()
     confidence = probs[pred_idx].item()
-    
-    # 标签映射
+
     labels = ['负面', '正面']
     label = labels[pred_idx]
-    
+
     return {
         "sentiment": [
             {"key": "正面", "score": float(probs[1])},
@@ -90,15 +96,13 @@ def analyze_local(text):
 
 
 def format_emotion_result(raw_result):
-    """格式化情绪分析结果"""
+    """Format emotion analysis result"""
     prediction = raw_result['prediction']
     confidence = raw_result['confidence']
     sentiment = raw_result['sentiment']
-    
-    # 获取映射
+
     mapped = EMOTION_MAP.get(prediction, EMOTION_MAP["正面"])
-    
-    # 构建所有情绪分布
+
     all_emotions = []
     for s in sentiment:
         if s['key'] in EMOTION_MAP:
@@ -110,8 +114,7 @@ def format_emotion_result(raw_result):
                 "category": m['category'],
                 "score": round(s['score'], 4)
             })
-    
-    # 主情绪
+
     primary_emotion = {
         "key": prediction,
         "label": mapped['label'],
@@ -119,7 +122,7 @@ def format_emotion_result(raw_result):
         "category": mapped['category'],
         "score": round(confidence, 4)
     }
-    
+
     return {
         "emotion": primary_emotion,
         "all_emotions": all_emotions,
@@ -130,10 +133,10 @@ def format_emotion_result(raw_result):
 
 
 def generate_suggestion(emotion):
-    """根据情绪生成建议"""
+    """Generate suggestion based on emotion"""
     category = emotion['category']
     label = emotion['label']
-    
+
     suggestions = {
         "positive": {
             "满意": "用户非常满意，建议继续保持并邀请好评"
@@ -142,27 +145,29 @@ def generate_suggestion(emotion):
             "不满": "用户有不满情绪，建议及时处理并改进"
         }
     }
-    
+
     return suggestions.get(category, {}).get(label, "建议持续关注用户反馈")
 
 
-# 初始化时预加载模型
+# Initialize model before first request
 @app.before_request
 def init_model():
+    global model
     if model is None:
         try:
             load_model()
         except Exception as e:
-            print(f"⚠️ 模型加载失败: {e}")
+            print(f"⚠️ Model loading failed: {e}")
 
 
-# API 路由
+# ==================== API Routes ====================
+
 @app.route('/api/v1/health', methods=['GET'])
 def health_check():
-    """健康检查"""
+    """Health check"""
     return jsonify({
         "status": "ok",
-        "service": "emotion-widget-api",
+        "service": "reviewpulse-api",
         "version": "1.0.0",
         "model": MODEL_NAME,
         "device": get_cached_device()
@@ -171,72 +176,72 @@ def health_check():
 
 @app.route('/api/v1/analyze', methods=['POST'])
 def analyze():
-    """单条文本情绪分析"""
+    """Single text sentiment analysis"""
     try:
         data = request.get_json()
-        
+
         if not data or 'text' not in data:
             return jsonify({
                 "success": False,
-                "error": "缺少 text 参数"
+                "error": "Missing text parameter"
             }), 400
-        
+
         text = data['text']
-        
+
         if not text or len(text.strip()) == 0:
             return jsonify({
                 "success": False,
-                "error": "文本不能为空"
+                "error": "Text cannot be empty"
             }), 400
-        
+
         if len(text) > 1000:
             return jsonify({
                 "success": False,
-                "error": "文本长度不能超过1000字"
+                "error": "Text length cannot exceed 1000 characters"
             }), 400
-        
-        # 调用本地模型
+
+        # Call local model
         raw_result = analyze_local(text)
         result = format_emotion_result(raw_result)
-        
+
         return jsonify({
             "success": True,
             "data": result
         })
-        
+
     except Exception as e:
         return jsonify({
             "success": False,
-            "error": f"服务器错误: {str(e)}"
+            "error": f"Server error: {str(e)}"
         }), 500
 
 
 @app.route('/api/v1/batch_analyze', methods=['POST'])
 def batch_analyze():
-    """批量文本情绪分析（最多20条）"""
+    """Batch text sentiment analysis (max 20)"""
     try:
         data = request.get_json()
-        
+
         if not data or 'texts' not in data:
             return jsonify({
                 "success": False,
-                "error": "缺少 texts 参数"
+                "error": "Missing texts parameter"
             }), 400
-        
+
         texts = data['texts']
-        
+
         if not isinstance(texts, list):
             return jsonify({
                 "success": False,
-                "error": "texts 必须是数组"
+                "error": "texts must be an array"
             }), 400
-        
+
         if len(texts) > 20:
             return jsonify({
                 "success": False,
-                "error": "最多支持20条文本"
+                "error": "Maximum 20 texts supported"
             }), 400
-        
+
         results = []
         for text in texts:
             try:
@@ -248,12 +253,12 @@ def batch_analyze():
                     "error": str(e),
                     "content": text[:100]
                 })
-        
+
         return jsonify({
             "success": True,
             "data": results
         })
-        
+
     except Exception as e:
         return jsonify({
             "success": False,
@@ -263,12 +268,12 @@ def batch_analyze():
 
 @app.route('/api/v1/models', methods=['GET'])
 def list_models():
-    """获取可用模型信息"""
+    """Get available model info"""
     return jsonify({
         "success": True,
         "data": {
             "current": MODEL_NAME,
-            "description": "大众点评情感分析模型（二分类：正面/负面）",
+            "description": "Dianping sentiment analysis model (binary: positive/negative)",
             "labels": ["正面", "负面"],
             "device": get_cached_device(),
             "cuda_available": torch.cuda.is_available()
@@ -276,5 +281,14 @@ def list_models():
     })
 
 
+# ==================== Register Blueprints ====================
+app.register_blueprint(auth_bp)
+app.register_blueprint(user_bp)
+
+
 if __name__ == '__main__':
+    # Initialize database
+    init_db()
+    print("✅ Database initialized")
+
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)

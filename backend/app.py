@@ -14,6 +14,7 @@ from functools import lru_cache
 # Import routes
 from routes.auth import auth_bp
 from routes.user import user_bp
+from routes.crawl import crawl_bp
 
 # Import database
 from models.database import init_db
@@ -284,6 +285,7 @@ def list_models():
 # ==================== Register Blueprints ====================
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(crawl_bp)
 
 
 if __name__ == '__main__':

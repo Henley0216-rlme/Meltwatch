@@ -9,7 +9,7 @@
 | 模块 | 技术 |
 |---|---|
 | 后端 | Flask + Python |
-| AI 服务 | 阿里云 NLP 情绪识别 API |
+| AI 模型 | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` (本地部署) |
 | 前端 | 原生 HTML + CSS + JavaScript |
 | 部署 | Docker + Docker Compose |
 
@@ -39,9 +39,10 @@ emotion-widget/
 - 遵循 PEP 8（Python）/ ESLint（JavaScript）
 
 ### 环境变量
-必须设置以下环境变量：
-- `ALIBABA_CLOUD_ACCESS_KEY_ID`
-- `ALIBABA_CLOUD_ACCESS_KEY_SECRET`
+可选设置以下环境变量：
+- `DATABASE_URL` - 数据库连接 (默认 SQLite)
+- `SECRET_KEY` - JWT 密钥 (默认开发密钥，生产需修改)
+- `EMOTION_MODEL` - 情感分析模型 (默认 `uer/roberta-base-finetuned-dianping-chinese`)
 
 ### API 设计
 - `POST /api/v1/analyze` - 单条文本情绪分析
@@ -50,19 +51,10 @@ emotion-widget/
 
 ### 情绪分类映射
 
-| 阿里云 key | 前端显示 | 图标 |
-|---|---|---|
-| 高兴 | 开心 | 😊 |
-| 喜好 | 喜欢 | ❤️ |
-| 认可 | 认可 | 👍 |
-| 感谢 | 感谢 | 🙏 |
-| 惊讶 | 惊讶 | 😮 |
-| 悲伤 | 难过 | 😢 |
-| 厌恶 | 不满 | 😒 |
-| 恐惧 | 担忧 | 😨 |
-| 愤怒 | 愤怒 | 😠 |
-| 抱怨 | 抱怨 | 😤 |
-| 投诉 | 投诉 | 💢 |
+| 模型输出 | 前端显示 | 图标 | 类别 |
+|---|---|---|---|
+| 正面 | 满意 | 😊 | positive |
+| 负面 | 不满 | 😞 | negative |
 
 ### 部署
 ```bash

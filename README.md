@@ -1,10 +1,12 @@
 # Emotion Widget - 用户评价情绪识别工具
 
-基于阿里云 NLP 的电商用户评价情绪识别工具，可嵌入商家网页使用。
+基于 HuggingFace 本地模型的中文电商评论情绪识别工具，可嵌入商家网页使用。
+
+**技术说明**：使用 `uer/roberta-base-finetuned-dianping-chinese` 模型，大众点评数据微调，无需阿里云凭证，不产生 API 调用费用。
 
 ## 功能特性
 
-- 🎯 **6种情绪识别**：高兴、愤怒、悲伤、惊讶、恐惧、厌恶
+- 🎯 **二分类情感分析**：正面/负面评论判断
 - 🤖 **免费开源**：基于 HuggingFace 本地模型，无需付费
 - 📊 **智能建议**：根据情绪结果提供运营建议
 - 🔌 **易于嵌入**：一行代码即可集成到任何网页
@@ -106,7 +108,6 @@ POST /api/v1/batch_analyze
 cd backend
 pip install -r requirements.txt
 cp .env.example .env
-# 编辑 .env 填入阿里云凭证
 python app.py
 ```
 
@@ -119,18 +120,18 @@ python app.py
 | 模块 | 技术 |
 |---|---|
 | 后端 | Flask + Python |
-| AI 模型 | HuggingFace `robot4/emotion` (本地部署) |
+| AI 模型 | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` (本地部署) |
 | 前端 | 原生 HTML/CSS/JS |
 | 部署 | Docker + Nginx |
 
 ## 情绪分类
 
-| 类别 | 情绪 |
+| 类别 | 说明 |
 |---|---|
-| 正面 (positive) | 高兴、喜好、认可、感谢 |
-| 中性 (neutral) | 惊讶、一般 |
-| 负面 (negative) | 悲伤、厌恶、恐惧、愤怒、抱怨 |
-| 紧急 (critical) | 投诉 |
+| 正面 (positive) | 满意、高兴、认可 |
+| 负面 (negative) | 不满、抱怨、差评 |
+
+> 注：模型为二分类（正面/负面），源自大众点评评论数据训练。
 
 ## License
 

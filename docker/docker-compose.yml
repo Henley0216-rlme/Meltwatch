@@ -1,16 +1,16 @@
-# Docker Compose 配置
-
 services:
   backend:
     build:
-      context: ..
-      dockerfile: backend/Dockerfile
-    container_name: emotion-widget-api
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: reviewpulse-api
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - USE_LOCAL_MODEL=true
       - FLASK_ENV=production
+    volumes:
+      - db_data:/app/db
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/health"]
@@ -20,7 +20,7 @@ services:
 
   frontend:
     image: nginx:alpine
-    container_name: emotion-widget-frontend
+    container_name: reviewpulse-frontend
     ports:
       - "8080:80"
     volumes:
@@ -29,3 +29,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  db_data:

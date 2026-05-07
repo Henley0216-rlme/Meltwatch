@@ -286,6 +286,7 @@ def list_models():
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(crawl_bp)
+app.register_blueprint(analysis_bp)
 
 
 if __name__ == '__main__':

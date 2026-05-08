@@ -1,41 +1,13 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, Bell, BarChart2, Users, Clock, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const TEAL = "#2BB7B8";
 
-const DATA_SOURCES = [
-  { id: "x",           src: "/icons/x.png",           label: "X" },
-  { id: "facebook",    src: "/icons/facebook.png",    label: "Facebook" },
-  { id: "xiaohongshu", src: "/icons/xiaohongshu.png", label: "小红书" },
-  { id: "douyin",      src: "/icons/douyin.png",      label: "抖音" },
-  { id: "weixin",      src: "/icons/weixin.png",      label: "微信" },
-  { id: "weibo",       src: "/icons/weibo.png",       label: "微博" },
-  { id: "youtube",     src: "/icons/yotube.png",      label: "YouTube" },
-  { id: "bilibili",    src: "/icons/bilibili.png",    label: "Bilibili" },
-  { id: "taobao",      src: "/icons/taobao.png",      label: "淘宝" },
-  { id: "dewu",        src: "/icons/dewu.png",        label: "得物" },
-  { id: "claude",      src: "/icons/claude.png",      label: "Claude" },
-  { id: "deepseek",    src: "/icons/deepseek.png",    label: "DeepSeek" },
-  { id: "doubao",      src: "/icons/doubao.png",      label: "豆包" },
-  { id: "gemini",      src: "/icons/gemini.png",      label: "Gemini" },
-  { id: "yuanbao",     src: "/icons/yuanbao.png",     label: "元宝" },
-  { id: "chatgpt",     src: "/icons/chatgpt.png",     label: "ChatGPT" },
-  { id: "google",      src: "/icons/google.png",      label: "Google" },
-];
-
 export function DemoHome() {
   const { language } = useLanguage();
   const zh = language === "zh";
   const navigate = useNavigate();
-
-  const [selected, setSelected] = useState<Set<string>>(
-    new Set(["x", "facebook", "xiaohongshu", "douyin", "weixin", "weibo"])
-  );
-  function toggle(id: string) {
-    setSelected((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  }
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? (zh ? "早上好" : "Good morning") : hour < 18 ? (zh ? "下午好" : "Good afternoon") : (zh ? "晚上好" : "Good evening");
@@ -67,30 +39,6 @@ export function DemoHome() {
         <h2 className="text-2xl font-bold text-gray-900 mb-1">{greeting}! 👋</h2>
         <p className="text-gray-500 text-sm">{zh ? "今天想了解什么？" : "What would you like to explore today?"}</p>
       </div>
-
-      {/* Data source selector */}
-      <section className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400">{zh ? "选择数据来源" : "Data Sources"}</h2>
-          <span className="text-xs text-gray-400">{selected.size} {zh ? "已选" : "selected"}</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {DATA_SOURCES.map((src) => {
-            const on = selected.has(src.id);
-            return (
-              <button
-                key={src.id}
-                onClick={() => toggle(src.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all"
-                style={on ? { borderColor: TEAL, color: TEAL, backgroundColor: `${TEAL}14` } : { borderColor: "#e5e7eb", color: "#6b7280", backgroundColor: "#fff" }}
-              >
-                <img src={src.src} alt={src.label} className="w-3.5 h-3.5 object-contain" />
-                {src.label}
-              </button>
-            );
-          })}
-        </div>
-      </section>
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-4">

@@ -14,6 +14,10 @@ import { DemoExplore } from "@/pages/DemoExplore";
 import { DemoMonitor } from "@/pages/DemoMonitor";
 import { DemoAnalytics } from "@/pages/DemoAnalytics";
 import { DemoInfluencer } from "@/pages/DemoInfluencer";
+import { DemoCompetitive } from "@/pages/DemoCompetitive";
+import { DemoReport } from "@/pages/DemoReport";
+import { DemoAlerts } from "@/pages/DemoAlerts";
+import { DemoAccount } from "@/pages/DemoAccount";
 
 function HomePage() {
   return (
@@ -44,7 +48,11 @@ function App() {
           <Route path="explore"    element={<DemoExplore />} />
           <Route path="monitor"    element={<DemoMonitor />} />
           <Route path="analytics"  element={<DemoAnalytics />} />
-          <Route path="influencer" element={<DemoInfluencer />} />
+          <Route path="influencer"  element={<DemoInfluencer />} />
+          <Route path="competitive" element={<DemoCompetitive />} />
+          <Route path="report"      element={<DemoReport />} />
+          <Route path="alerts"      element={<DemoAlerts />} />
+          <Route path="account"     element={<DemoAccount />} />
         </Route>
       </Routes>
     </BrowserRouter>

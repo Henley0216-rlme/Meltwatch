@@ -1,4 +1,4 @@
-# ReviewPulse
+# Meltwatch
 
 基于 HuggingFace 本地模型的中文电商评论情绪识别工具，支持三分类情感分析、关键词提取、痛点检测、店铺/商品管理和报告生成。
 

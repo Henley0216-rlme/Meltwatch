@@ -1,6 +1,48 @@
-# ReviewPulse 改动日志
+# Meltwatch 改动日志
 
-本文件记录我方对队友项目 ReviewPulse 的所有修改。
+本文件记录 Meltwatch 项目的所有修改。
+
+---
+
+## 2026-05-08: LLM 集成与品牌升级
+
+### 新增智谱大模型集成
+
+**新增文件:**
+| 文件 | 说明 |
+|------|------|
+| `backend/services/zhipu_client.py` | 智谱 GLM-4 API 客户端 |
+| `backend/routes/llm.py` | LLM 增强分析路由 |
+| `backend/services/__init__.py` | Services 模块初始化 |
+
+**后端 `backend/routes/llm.py`:**
+- `GET /api/v1/llm/status` - 检查 LLM 配置状态
+- `POST /api/v1/llm/analyze` - 带上下文的深度情感分析
+- `POST /api/v1/llm/batch_analyze` - 批量分析 + 汇总洞察
+- `POST /api/v1/llm/generate_response` - 负面评论回复建议
+- `POST /api/v1/llm/summarize_reviews` - AI 驱动评论摘要
+- `POST /api/v1/llm/chat` - 通用对话接口
+
+**前端 `meltwatch/src/lib/api.ts`:**
+- 补充所有 LLM API 类型定义和调用函数
+
+### 配置文件更新
+
+| 文件 | 更新内容 |
+|------|----------|
+| `docker/docker-compose.yml` | 添加 `ZHIPU_API_KEY`，修正容器名、路径 |
+| `docker/.env` | 新建，包含所有环境变量 |
+| `docker/nginx.conf` | 更新代理配置，添加 SPA 支持 |
+| `backend/Dockerfile` | 优化构建，添加健康检查 |
+| `backend/.env` | 添加智谱 API Key |
+| `docker-compose.yml` | 更新容器名、路径、添加智谱配置 |
+| `meltwatch/.env.example` | 新建前端环境变量示例 |
+
+### 文档更新
+
+- `README.md` - 全面重写，包含双引擎架构说明
+- `AGENTS.md` - 更新项目规范
+- `CHANGELOG.md` - 更新为本项目日志
 
 ---
 

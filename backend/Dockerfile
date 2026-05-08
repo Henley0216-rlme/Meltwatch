@@ -1,29 +1,36 @@
-# Emotion Widget 后端 Dockerfile
+# Meltwatch Backend Dockerfile
 FROM python:3.10-slim
 
 WORKDIR /app
 
-# 安装系统依赖（PyTorch 需要）
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 PyTorch（CPU 版本，减小镜像大小）
+# Install PyTorch CPU version (smaller than GPU version)
 RUN pip install --no-cache-dir torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu
 
-# 安装其他依赖
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制代码
+# Copy application code
 COPY . .
 
-# 环境变量
+# Environment variables
 ENV PYTHONUNBUFFERED=1
 ENV USE_LOCAL_MODEL=true
+ENV FLASK_ENV=production
+ENV PYTHONPATH=/app
 
-# 暴露端口
+# Expose port
 EXPOSE 5000
 
-# 启动命令
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "app:app"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:5000/api/v1/health || exit 1
+
+# Start command
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "120", "app:app"]

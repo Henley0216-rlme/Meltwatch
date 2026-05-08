@@ -50,7 +50,10 @@ meltwatch/
 │   │   ├── analysis.py     # Emotion analysis, keywords, pain points
 │   │   ├── auth.py        # Authentication
 │   │   ├── crawl.py       # Web scraping
+│   │   ├── llm.py         # LLM enhancement
 │   │   └── user.py        # User management
+│   ├── services/           # External services
+│   │   └── zhipu_client.py  # Zhipu AI client
 │   └── utils/              # Utilities
 │       ├── auth.py        # JWT, token validation
 │       └── crawler.py      # Web scraper framework
@@ -182,9 +185,13 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ## Key Files Reference
 
-- Frontend entry: [meltwatch/src/main.tsx](meltwatch/src/main.tsx)
-- App routes: [meltwatch/src/App.tsx](meltwatch/src/App.tsx)
-- API client: [meltwatch/src/lib/api.ts](meltwatch/src/lib/api.ts)
-- Backend entry: [backend/app.py](backend/app.py)
-- Emotion module: [backend/models/emotion.py](backend/models/emotion.py)
-- Analysis routes: [backend/routes/analysis.py](backend/routes/analysis.py)
+| File | Description |
+|------|-------------|
+| [meltwatch/src/main.tsx](meltwatch/src/main.tsx) | Frontend entry point |
+| [meltwatch/src/App.tsx](meltwatch/src/App.tsx) | App routes and layout |
+| [meltwatch/src/lib/api.ts](meltwatch/src/lib/api.ts) | API client with all endpoints |
+| [backend/app.py](backend/app.py) | Backend entry point |
+| [backend/routes/analysis.py](backend/routes/analysis.py) | Emotion analysis routes |
+| [backend/routes/llm.py](backend/routes/llm.py) | LLM enhancement routes |
+| [backend/services/zhipu_client.py](backend/services/zhipu_client.py) | Zhipu AI client |
+| [docker/docker-compose.yml](docker/docker-compose.yml) | Docker deployment config |

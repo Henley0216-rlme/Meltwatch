@@ -1,247 +1,263 @@
 # Meltwatch
 
-Real-time sentiment monitoring and analytics platform for Chinese e-commerce reviews. Built with local AI models for privacy-first, cost-effective emotion analysis.
+实时舆情监控与电商评论情感分析平台。基于本地 AI 模型 + 智谱大模型双引擎，为品牌提供快速、深度、智能的消费者洞察。
 
 ![Meltwatch](meltwatch/public/logo.svg)
 
-## Features
+## 核心特性
 
-- **Three-class Sentiment Analysis** - Positive, negative, and neutral classification
-- **Keyword Extraction** - TF-IDF based high-frequency term analysis using jieba
-- **Pain Point Detection** - Rule-based identification of 6 problem categories
-- **Real-time Monitoring** - Live dashboard for brand sentiment tracking
-- **Report Generation** - Exportable HTML analysis reports
-- **Multi-platform Support** - Generic, Dianping, JD.com scrapers
-- **GPU/CPU Adaptive** - Automatic optimal device selection for inference
-- **Free & Open Source** - HuggingFace local models, no API costs
+| 功能 | 技术 | 说明 |
+|------|------|------|
+| **情感分析** | RoBERTa + 智谱 GLM-4 | 二分类/三分类 + 深度上下文理解 |
+| **关键词提取** | jieba TF-IDF | 高频词提取与情感分布 |
+| **痛点检测** | 规则匹配 | 6 大类问题自动识别 |
+| **报告生成** | HTML 模板 | 一键导出可视化报告 |
+| **网页爬取** | 多平台支持 | 通用/大众点评/京东 |
+| **GPU/CPU 自适应** | PyTorch | 自动选择最优推理设备 |
 
-## Tech Stack
+## 技术栈
 
-| Component | Technology |
-|-----------|------------|
-| Frontend | React 18 + TypeScript + Vite + Tailwind CSS |
-| Backend | Flask 3.0 + Python |
-| AI Model | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` |
-| Database | SQLite (default) / PostgreSQL |
-| Deployment | Docker + Nginx |
+| 组件 | 技术 |
+|------|------|
+| 前端 | React 18 + TypeScript + Vite + Tailwind CSS |
+| 后端 | Flask 3.0 + Python |
+| 本地模型 | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` |
+| 大模型 | 智谱 GLM-4-Flash |
+| 数据库 | SQLite (默认) / PostgreSQL |
+| 部署 | Docker + Nginx |
 
-## Quick Start
+## 快速开始
 
-### Prerequisites
+### 前置要求
 
-- Docker and Docker Compose
-- 4GB+ RAM recommended for model inference
+- Docker 和 Docker Compose
+- 4GB+ RAM（模型推理）
 
-### Using Docker (Recommended)
+### Docker 部署（推荐）
 
 ```bash
+# 克隆项目
 cd docker
+
+# 启动服务
 docker compose up -d
+
+# 查看日志
+docker compose logs -f backend
 ```
 
-### Local Development
+### 本地开发
 
 ```bash
-# Backend
+# 后端
 cd backend
 pip install -r requirements.txt
 cp .env.example .env
 python app.py
 
-# Frontend
+# 前端
 cd meltwatch
 npm install
 npm run dev
 ```
 
-### First Run
+### 首次运行
 
-On first startup, the model (~400MB) will be downloaded automatically:
+首次启动会自动下载模型（约 400MB）：
 
 ```bash
 docker compose logs -f backend
+# 看到 "✅ Model loaded successfully" 即表示就绪
 ```
 
-Wait for `✅ Model loaded successfully` message.
+### 服务访问
 
-### Access
+| 服务 | 地址 |
+|------|------|
+| 前端首页 | http://localhost:8080 |
+| Demo 页面 | http://localhost:8080/demo/* |
+| 后端 API | http://localhost:5001/api/v1 |
+| 健康检查 | http://localhost:5001/api/v1/health |
 
-- Main Dashboard: http://localhost:8080
-- Demo Pages: http://localhost:8080/demo/*
-- API: http://localhost:5001/api/v1
+## AI 分析引擎
 
-## API Endpoints
+### 双引擎架构
 
-### Emotion Analysis
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        前端 (React)                          │
+│  ┌─────────────┐  ┌──────────────┐  ┌───────────────────┐ │
+│  │ 本地模型    │  │  智谱 GLM    │  │   报告生成        │ │
+│  │  (快速)     │  │  (深度)      │  │                  │ │
+│  └──────┬──────┘  └──────┬───────┘  └────────┬─────────┘ │
+└─────────┼────────────────┼─────────────────────┼────────────┘
+          │                │                      │
+          ▼                ▼                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       后端 (Flask)                          │
+│  ┌────────────────┐  ┌──────────────────────────────────┐  │
+│  │ 本地模型      │  │      智谱 GLM-4-Flash             │  │
+│  │ • 快速分类    │  │  • 上下文感知分析                 │  │
+│  │ • 实时响应    │  │  • 批量洞察生成                  │  │
+│  │ • 零成本      │  │  • 回复建议                       │  │
+│  └────────────────┘  └──────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 场景选择指南
+
+| 场景 | 推荐 | 原因 |
+|------|------|------|
+| 高并发、快速筛选 | 本地模型 | 无 API 成本，低延迟 |
+| 复杂上下文理解 | 本地 + 智谱 | 深度语义分析 |
+| 批量分析 + 报告 | 智谱 batch | 汇总洞察生成 |
+| 负面评论处理 | 智谱 generate_response | 自然语言建议 |
+
+## API 文档
+
+### 基础情感分析
 
 ```bash
-# Single text analysis
+# 单条分析
 POST /api/v1/analyze
 {"text": "产品质量很好，物流也很快！"}
 
-# Batch analysis (max 20)
+# 批量分析（最多 20 条）
 POST /api/v1/batch_analyze
-{"texts": ["文本1", "文本2", "..."]}
+{"texts": ["文本1", "文本2"]}
 ```
 
-### Keywords & Pain Points
+### 关键词与痛点
 
 ```bash
-# Keyword extraction
+# 关键词提取
 POST /api/v1/keywords
 {"texts": ["文本1", "文本2"], "top_n": 20}
 
-# Pain point detection
+# 痛点检测
 POST /api/v1/pain_points
 {"texts": ["文本1", "文本2"]}
 ```
 
-### Reports
+### LLM 增强（需配置 ZHIPU_API_KEY）
 
 ```bash
-POST /api/v1/reports/generate  # Generate report
-GET  /api/v1/reports           # List reports
-GET  /api/v1/reports/<id>      # Report detail
-GET  /api/v1/reports/<id>/download  # Download HTML
-DELETE /api/v1/reports/<id>    # Delete report
-```
-
-### Authentication
-
-```bash
-POST /api/v1/auth/register  # Register
-POST /api/v1/auth/login      # Login
-GET  /api/v1/auth/me        # Current user
-PUT  /api/v1/auth/me        # Update profile
-```
-
-### Web Scraping
-
-```bash
-POST /api/v1/crawl/scrape
-{"urls": ["https://example.com"], "platform": "Generic", "delay": 1.0}
-
-GET /api/v1/crawl/platforms  # Supported platforms
-```
-
-### LLM Enhancement (Zhipu AI)
-
-Enable LLM-powered features by setting `ZHIPU_API_KEY` in environment:
-
-```bash
-# Get API key at https://open.bigmodel.cn/
-ZHIPU_API_KEY=your_api_key_here
-```
-
-```bash
-# Check LLM status
+# 检查 LLM 状态
 GET /api/v1/llm/status
 
-# Enhanced sentiment analysis with context understanding
+# 深度情感分析（带上下文）
 POST /api/v1/llm/analyze
-{"text": "评论文本", "product_info": "产品信息"}
+{"text": "夜景模式噪点太多", "product_info": "某品牌手机"}
 
-# Batch analyze with aggregated insights
+# 批量分析 + 洞察
 POST /api/v1/llm/batch_analyze
-{"texts": ["评论1", "评论2", ...], "batch_size": 10}
+{"texts": ["好评", "物流太慢", "质量不错"], "batch_size": 10}
 
-# Generate response suggestion for negative reviews
+# 生成回复建议
 POST /api/v1/llm/generate_response
-{"negative_review": "负面评论文本", "tone": "professional"}
+{"negative_review": "质量太差了", "tone": "professional"}
 
-# Summarize reviews with AI
+# 评论摘要
 POST /api/v1/llm/summarize_reviews
 {"reviews": ["评论1", "评论2"], "product_name": "产品名称"}
 ```
 
-## Demo Pages
+### 报告管理
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Home | `/demo` | Data source selection, recent activity |
-| Explore | `/demo/explore` | AI-powered search and insights |
-| Monitor | `/demo/monitor` | Real-time sentiment dashboard |
-| Analytics | `/demo/analytics` | Brand analysis reports |
-| Influencer | `/demo/influencer` | Creator authenticity scoring |
+```bash
+POST /api/v1/reports/generate  # 生成报告
+GET  /api/v1/reports           # 报告列表
+GET  /api/v1/reports/<id>      # 报告详情
+GET  /api/v1/reports/<id>/download  # 下载 HTML
+DELETE /api/v1/reports/<id>    # 删除报告
+```
 
-## Project Structure
+### 用户认证
+
+```bash
+POST /api/v1/auth/register  # 注册
+POST /api/v1/auth/login      # 登录
+GET  /api/v1/auth/me        # 当前用户
+PUT  /api/v1/auth/me        # 更新资料
+```
+
+### 网页爬取
+
+```bash
+POST /api/v1/crawl/scrape
+{"urls": ["https://example.com"], "platform": "Generic"}
+
+GET /api/v1/crawl/platforms  # 支持的平台
+```
+
+## Demo 页面
+
+| 页面 | 路由 | 说明 |
+|------|------|------|
+| 首页 | `/demo` | 数据源选择、最近活动 |
+| 探索 | `/demo/explore` | AI 搜索助手 |
+| 监测 | `/demo/monitor` | 实时舆情仪表盘 |
+| 分析 | `/demo/analytics` | 品牌分析报告 |
+| 网红 | `/demo/influencer` | 创作者真实性评分 |
+
+## 项目结构
 
 ```
 meltwatch/
-├── meltwatch/              # React frontend
+├── meltwatch/              # React 前端
 │   ├── src/
-│   │   ├── components/     # UI components
-│   │   ├── contexts/       # React contexts
-│   │   ├── lib/            # API client, utilities
-│   │   ├── pages/          # Page components
+│   │   ├── components/     # UI 组件
+│   │   ├── contexts/       # React Context
+│   │   ├── lib/           # API 客户端
+│   │   ├── pages/         # 页面组件
 │   │   └── App.tsx
-│   ├── package.json
+│   ├── public/             # 静态资源
 │   └── vite.config.ts
-├── backend/                # Flask backend
-│   ├── app.py              # Main application
-│   ├── routes/             # API routes
-│   │   ├── analysis.py     # Emotion analysis
-│   │   ├── auth.py         # Authentication
-│   │   ├── crawl.py        # Web scraping
-│   │   ├── llm.py          # LLM enhancement
-│   │   └── user.py         # User management
-│   ├── models/             # Database models
-│   ├── services/           # External services
-│   │   └── zhipu_client.py # Zhipu AI client
-│   ├── utils/              # Utilities
+├── backend/                # Flask 后端
+│   ├── app.py             # 主应用
+│   ├── routes/            # API 路由
+│   │   ├── analysis.py    # 情感分析
+│   │   ├── auth.py        # 用户认证
+│   │   ├── crawl.py       # 网页爬取
+│   │   ├── llm.py         # LLM 增强
+│   │   └── user.py        # 用户管理
+│   ├── models/            # 数据模型
+│   ├── services/          # 外部服务
+│   │   └── zhipu_client.py  # 智谱客户端
 │   └── requirements.txt
-├── docker/                  # Docker deployment
+├── docker/                 # Docker 部署
 │   ├── docker-compose.yml
-│   └── nginx.conf
+│   ├── nginx.conf
+│   ├── .env
+│   └── start.sh
 └── README.md
 ```
 
-## Environment Variables
+## 环境变量
 
-Create `.env` from `.env.example`:
+在 `backend/.env` 中配置：
 
 ```bash
-EMOTION_MODEL=uer/roberta-base-finetuned-dianping-chinese
+# 数据库
 DATABASE_URL=sqlite:///reviewpulse.db
+
+# JWT 密钥
 SECRET_KEY=your-secret-key-change-in-production
-USE_LOCAL_MODEL=true
-FLASK_ENV=production
-# Optional: Zhipu AI for LLM enhancement
-ZHIPU_API_KEY=your_zhipu_api_key_here
+
+# 情感分析模型
+EMOTION_MODEL=uer/roberta-base-finetuned-dianping-chinese
+
+# 智谱 AI（LLM 增强）
+ZHIPU_API_KEY=faf1c88decd0412baf19ca089a40e2ff.O2fYoexoVFY7VtuZ
 ```
 
-## LLM Integration Architecture
+## 获取智谱 API Key
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (React)                        │
-│  ┌─────────────┐  ┌──────────────┐  ┌───────────────────┐ │
-│  │ Local Model │  │ LLM Analysis │  │ Report Generation │ │
-│  │  (Fast)     │  │  (Deep)      │  │                  │ │
-│  └──────┬──────┘  └──────┬───────┘  └────────┬─────────┘ │
-└─────────┼────────────────┼─────────────────────┼────────────┘
-          │                │                     │
-          ▼                ▼                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Backend (Flask)                           │
-│  ┌────────────────┐  ┌──────────────────────────────────┐ │
-│  │ Local Model    │  │     Zhipu GLM (Optional)          │ │
-│  │ (uer/roberta) │  │  • Context-aware analysis         │ │
-│  │ • Fast triage │  │  • Batch insights                │ │
-│  │ • Real-time   │  │  • Response suggestions           │ │
-│  └────────────────┘  └──────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-```
+1. 访问 https://open.bigmodel.cn/
+2. 注册并登录
+3. 在控制台创建 API Key
+4. 将 Key 填入环境变量
 
-### When to Use Each
-
-| Scenario | Use | Reason |
-|----------|-----|--------|
-| High volume, fast response | Local model | No API cost, low latency |
-| Complex context needed | Local + LLM | Deep understanding |
-| Bulk analysis + report | LLM batch | Aggregated insights |
-| Negative review handling | LLM generate_response | Natural language suggestions |
-
-## License
+## 许可证
 
 MIT

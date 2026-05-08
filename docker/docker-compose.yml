@@ -3,14 +3,18 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: reviewpulse-api
+    container_name: meltwatch-api
     ports:
       - "5001:5000"
     environment:
       - USE_LOCAL_MODEL=true
       - FLASK_ENV=production
+      - ZHIPU_API_KEY=faf1c88decd0412baf19ca089a40e2ff.O2fYoexoVFY7VtuZ
+    env_file:
+      - ../backend/.env
     volumes:
       - db_data:/app/db
+      - model_cache:/root/.cache/huggingface
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/health"]
@@ -24,7 +28,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ../meltwatch:/usr/share/nginx/html:ro
+      - ../meltwatch/dist:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - backend
@@ -32,3 +36,4 @@ services:
 
 volumes:
   db_data:
+  model_cache:

@@ -1,38 +1,42 @@
 #!/bin/bash
-# Emotion Widget 快速启动脚本
+# Meltwatch Quick Start Script
 
 set -e
 
-echo "🧠 Emotion Widget 启动脚本"
-echo "=========================="
+echo "Meltwatch Startup Script"
+echo "========================"
 
-# 检查 Docker
+# Change to docker directory
+cd "$(dirname "$0")"
+
+# Check Docker
 if ! command -v docker &> /dev/null; then
-    echo "❌ 请先安装 Docker"
+    echo "Docker not found. Please install Docker first."
     exit 1
 fi
 
 if ! command -v docker-compose &> /dev/null; then
-    echo "❌ 请先安装 Docker Compose"
+    echo "Docker Compose not found. Please install Docker Compose first."
     exit 1
 fi
 
-# 检查环境变量
+# Check environment file
 if [ ! -f .env ]; then
-    echo "📝 创建 .env 文件..."
+    echo "Creating .env file from template..."
     cp .env.example .env
-    echo "⚠️  请编辑 .env 文件，填入阿里云 AccessKey"
-    echo "   然后重新运行此脚本"
+    echo "Please edit .env file if needed, then run this script again."
     exit 1
 fi
 
-echo "🚀 启动服务..."
-docker-compose up -d
+# Build and start services
+echo "Building and starting services..."
+docker compose up -d --build
 
 echo ""
-echo "✅ 启动成功！"
-echo "   演示页面: http://localhost:8080/widget.html"
-echo "   API 地址: http://localhost:5000/api/v1"
+echo "Services started successfully!"
+echo "  Frontend:  http://localhost:8080"
+echo "  Backend:   http://localhost:5001"
+echo "  API Docs:  http://localhost:5001/api/v1/health"
 echo ""
-echo "📋 查看日志: docker-compose logs -f"
-echo "🛑 停止服务: docker-compose down"
+echo "View logs: docker compose logs -f"
+echo "Stop:      docker compose down"

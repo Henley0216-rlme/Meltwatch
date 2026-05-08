@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///reviewpulse.db')
 
-engine = create_engine(DATABASE_URL, echo=False, convert_unicode=True)
+engine = create_engine(DATABASE_URL, echo=False)
 Session = scoped_session(sessionmaker(bind=engine))
 Base = declarative_base()
 

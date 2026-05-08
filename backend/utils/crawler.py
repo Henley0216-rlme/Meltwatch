@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-通用爬虫框架
+Web Scraper Framework
 """
 
 import re
@@ -72,7 +72,7 @@ class BaseScraper(ABC):
         return results
 
 
-class通用爬虫(BaseScraper):
+class GenericScraper(BaseScraper):
     """通用网页内容爬虫"""
 
     def parse(self, html: str, url: str) -> List[CrawlResult]:
@@ -100,7 +100,7 @@ class通用爬虫(BaseScraper):
         )]
 
 
-class 大众点评爬虫(BaseScraper):
+class DianpingScraper(BaseScraper):
     """大众点评评论爬虫"""
 
     def parse(self, html: str, url: str) -> List[CrawlResult]:
@@ -127,7 +127,7 @@ class 大众点评爬虫(BaseScraper):
         return results
 
 
-class 京东爬虫(BaseScraper):
+class JDScraper(BaseScraper):
     """京东商品评论爬虫"""
 
     def parse(self, html: str, url: str) -> List[CrawlResult]:
@@ -155,13 +155,16 @@ class 京东爬虫(BaseScraper):
 
 
 SCRAPER_REGISTRY = {
-    '通用': 通用爬虫,
-    '大众点评': 大众点评爬虫,
-    '京东': 京东爬虫,
+    'Generic': GenericScraper,
+    '通用': GenericScraper,
+    'Dianping': DianpingScraper,
+    '大众点评': DianpingScraper,
+    'JD': JDScraper,
+    '京东': JDScraper,
 }
 
 
-def get_scraper(platform: str = '通用', delay: float = 1.0) -> BaseScraper:
-    """获取指定平台的爬虫"""
-    scraper_class = SCRAPER_REGISTRY.get(platform, 通用爬虫)
+def get_scraper(platform: str = 'Generic', delay: float = 1.0) -> BaseScraper:
+    """Get scraper for specified platform"""
+    scraper_class = SCRAPER_REGISTRY.get(platform, GenericScraper)
     return scraper_class(delay=delay)

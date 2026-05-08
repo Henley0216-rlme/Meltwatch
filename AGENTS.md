@@ -1,69 +1,179 @@
-# Emotion Widget 项目规范
+# Meltwatch Project Specification
 
-## 项目概述
+## Project Overview
 
-电商用户评价情绪识别工具，嵌入商家网页，实时分析文本情绪。
+Real-time sentiment monitoring and analytics platform for Chinese e-commerce reviews. Built with local AI models for privacy-first, cost-effective emotion analysis.
 
-## 技术栈
+## Tech Stack
 
-| 模块 | 技术 |
-|---|---|
-| 后端 | Flask + Python |
-| AI 模型 | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` (本地部署) |
-| 前端 | 原生 HTML + CSS + JavaScript |
-| 部署 | Docker + Docker Compose |
+| Component | Technology |
+|-----------|------------|
+| Frontend | React 18 + TypeScript + Vite + Tailwind CSS |
+| Backend | Flask 3.0 + Python |
+| AI Model | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` |
+| Database | SQLite (default) / PostgreSQL |
+| Deployment | Docker + Nginx |
 
-## 目录结构
+## Directory Structure
 
 ```
-emotion-widget/
-├── backend/           # Flask 后端服务
-│   ├── app.py         # 主应用
-│   ├── config.py      # 配置文件
+meltwatch/
+├── meltwatch/              # React frontend
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   │   ├── ui/         # Base UI components
+│   │   │   └── visuals/    # Visual components
+│   │   ├── contexts/        # React contexts
+│   │   ├── lib/            # API client, utilities
+│   │   ├── pages/          # Page components
+│   │   │   ├── DemoHome.tsx
+│   │   │   ├── DemoExplore.tsx
+│   │   │   ├── DemoMonitor.tsx
+│   │   │   ├── DemoAnalytics.tsx
+│   │   │   ├── DemoInfluencer.tsx
+│   │   │   └── DemoLayout.tsx
+│   │   └── App.tsx
+│   ├── public/             # Static assets
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.ts
+├── backend/                # Flask backend
+│   ├── app.py              # Main application
+│   ├── config.py            # Configuration
+│   ├── db.py               # Database
 │   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/          # 前端 Widget
-│   ├── widget.html    # 独立页面（演示用）
-│   └── embed.js       # 可嵌入代码
-├── docker/
+│   ├── Dockerfile
+│   ├── models/             # Database models
+│   │   ├── database.py
+│   │   └── emotion.py
+│   ├── routes/             # API routes
+│   │   ├── analysis.py     # Emotion analysis, keywords, pain points
+│   │   ├── auth.py        # Authentication
+│   │   ├── crawl.py       # Web scraping
+│   │   └── user.py        # User management
+│   └── utils/              # Utilities
+│       ├── auth.py        # JWT, token validation
+│       └── crawler.py      # Web scraper framework
+├── docker/                  # Docker deployment
 │   ├── docker-compose.yml
-│   └── nginx.conf
-├── .env.example       # 环境变量示例
+│   ├── nginx.conf
+│   └── start.sh
+├── docs/                    # Documentation
+├── scripts/                 # Build scripts
+├── share/                   # Shared resources
+├── bin/                     # Executables
+├── .env.example            # Environment variables
+├── docker-compose.yml       # Root compose file
+├── AGENTS.md               # This file
+├── CHANGELOG.md
 └── README.md
 ```
 
-## 开发规范
+## Development Standards
 
-### 代码风格
-- 使用 2 空格缩进
-- 遵循 PEP 8（Python）/ ESLint（JavaScript）
+### Code Style
+- 2 spaces for indentation
+- Follow PEP 8 (Python) / ESLint (TypeScript)
+- Chinese comments for complex logic, English for public APIs
 
-### 环境变量
-可选设置以下环境变量：
-- `DATABASE_URL` - 数据库连接 (默认 SQLite)
-- `SECRET_KEY` - JWT 密钥 (默认开发密钥，生产需修改)
-- `EMOTION_MODEL` - 情感分析模型 (默认 `uer/roberta-base-finetuned-dianping-chinese`)
+### Environment Variables
 
-### API 设计
-- `POST /api/v1/analyze` - 单条文本情绪分析
-- `POST /api/v1/batch_analyze` - 批量分析（最多20条）
-- `GET /api/v1/health` - 健康检查
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | Database connection | `sqlite:///reviewpulse.db` |
+| `SECRET_KEY` | JWT signing key | `your-secret-key-change-in-production` |
+| `EMOTION_MODEL` | Sentiment model | `uer/roberta-base-finetuned-dianping-chinese` |
+| `USE_LOCAL_MODEL` | Use local model | `true` |
+| `FLASK_ENV` | Flask environment | `production` |
 
-### 情绪分类映射
+### API Design
 
-| 模型输出 | 前端显示 | 图标 | 类别 |
-|---|---|---|---|
+Base URL: `/api/v1`
+
+#### Emotion Analysis
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/analyze` | POST | Single text analysis |
+| `/batch_analyze` | POST | Batch analysis (max 20) |
+| `/keywords` | POST | Keyword extraction |
+| `/pain_points` | POST | Pain point detection |
+| `/models` | GET | Model info |
+
+#### Reports
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/reports/generate` | POST | Generate report |
+| `/reports` | GET | List reports |
+| `/reports/<id>` | GET | Report detail |
+| `/reports/<id>/download` | GET | Download HTML |
+| `/reports/<id>` | DELETE | Delete report |
+
+#### Authentication
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/register` | POST | Register |
+| `/auth/login` | POST | Login |
+| `/auth/me` | GET | Current user |
+| `/auth/me` | PUT | Update profile |
+
+#### User Management
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/user/history` | GET | Analysis history |
+| `/user/stats` | GET | User statistics |
+| `/user/subscription` | GET | Subscription info |
+
+#### Web Scraping
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/crawl/scrape` | POST | Scrape pages |
+| `/crawl/platforms` | GET | Supported platforms |
+
+### Emotion Classification
+
+| Model Output | Display | Icon | Category |
+|-------------|---------|------|----------|
 | 正面 | 满意 | 😊 | positive |
+| 中性 | 一般 | 😐 | neutral |
 | 负面 | 不满 | 😞 | negative |
 
-### 部署
+Neutral threshold: 0.2 (when positive/negative probability gap < 0.2)
+
+### Pain Point Categories
+
+1. 产品质量 (Product Quality)
+2. 物流问题 (Logistics)
+3. 客服问题 (Customer Service)
+4. 价格问题 (Pricing)
+5. 描述不符 (Description Mismatch)
+6. 售后问题 (After-sales)
+
+## Deployment
+
 ```bash
+# Development
 cd docker
-docker-compose up -d
+docker compose up -d
+
+# Production
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-### 前端嵌入
-```html
-<script src="https://your-domain.com/embed.js"></script>
-<div id="emotion-widget"></div>
-```
+## Frontend Demo Pages
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Home | `/demo` | Data source selection, activity |
+| Explore | `/demo/explore` | AI search assistant |
+| Monitor | `/demo/monitor` | Real-time sentiment dashboard |
+| Analytics | `/demo/analytics` | Brand analysis reports |
+| Influencer | `/demo/influencer` | Creator authenticity |
+
+## Key Files Reference
+
+- Frontend entry: [meltwatch/src/main.tsx](meltwatch/src/main.tsx)
+- App routes: [meltwatch/src/App.tsx](meltwatch/src/App.tsx)
+- API client: [meltwatch/src/lib/api.ts](meltwatch/src/lib/api.ts)
+- Backend entry: [backend/app.py](backend/app.py)
+- Emotion module: [backend/models/emotion.py](backend/models/emotion.py)
+- Analysis routes: [backend/routes/analysis.py](backend/routes/analysis.py)

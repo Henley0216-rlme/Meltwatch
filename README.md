@@ -1,198 +1,179 @@
-# ReviewPulse
+# Meltwatch
 
-基于 HuggingFace 本地模型的中文电商评论情绪识别工具，支持三分类情感分析、关键词提取、痛点检测、店铺/商品管理和报告生成。
+Real-time sentiment monitoring and analytics platform for Chinese e-commerce reviews. Built with local AI models for privacy-first, cost-effective emotion analysis.
 
-**技术说明**：使用 `uer/roberta-base-finetuned-dianping-chinese` 模型，支持 Docker 一键部署。
+![Meltwatch](meltwatch/public/logo.svg)
 
-## 功能特性
+## Features
 
-- 🎯 **三分类情感分析**：正面/负面/中性评论判断
-- 🔑 **关键词提取**：基于 jieba TF-IDF 的高频词分析
-- ⚠️ **痛点检测**：规则匹配识别六大类问题
-- 📊 **智能建议**：根据情绪结果提供分级运营建议
-- 🏪 **店铺管理**：数据库支持店铺/商品 CRUD
-- 📄 **报告生成**：一键导出 HTML 分析报告
-- 🤖 **免费开源**：基于 HuggingFace 本地模型，无需 API 费用
-- 🔌 **易于嵌入**：一行代码即可集成到任何网页
-- ⚡ **GPU/CPU 自适应**：自动选择最优推理设备
+- **Three-class Sentiment Analysis** - Positive, negative, and neutral classification
+- **Keyword Extraction** - TF-IDF based high-frequency term analysis using jieba
+- **Pain Point Detection** - Rule-based identification of 6 problem categories
+- **Real-time Monitoring** - Live dashboard for brand sentiment tracking
+- **Report Generation** - Exportable HTML analysis reports
+- **Multi-platform Support** - Generic, Dianping, JD.com scrapers
+- **GPU/CPU Adaptive** - Automatic optimal device selection for inference
+- **Free & Open Source** - HuggingFace local models, no API costs
 
-## 快速开始
+## Tech Stack
 
-### 前置要求
+| Component | Technology |
+|-----------|------------|
+| Frontend | React 18 + TypeScript + Vite + Tailwind CSS |
+| Backend | Flask 3.0 + Python |
+| AI Model | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` |
+| Database | SQLite (default) / PostgreSQL |
+| Deployment | Docker + Nginx |
 
-1. Docker 和 Docker Compose
-2. 推荐 4GB+ RAM（模型推理需要）
+## Quick Start
 
-### 启动服务
+### Prerequisites
+
+- Docker and Docker Compose
+- 4GB+ RAM recommended for model inference
+
+### Using Docker (Recommended)
 
 ```bash
-# 方式一：Docker Compose（推荐）
 cd docker
 docker compose up -d
+```
 
-# 方式二：本地运行
+### Local Development
+
+```bash
+# Backend
 cd backend
 pip install -r requirements.txt
 cp .env.example .env
 python app.py
+
+# Frontend
+cd meltwatch
+npm install
+npm run dev
 ```
 
-### 首次运行
+### First Run
 
-首次启动会自动下载模型（约 400MB），请耐心等待：
+On first startup, the model (~400MB) will be downloaded automatically:
+
 ```bash
 docker compose logs -f backend
 ```
 
-看到 `✅ 模型加载完成` 即表示就绪。
+Wait for `✅ Model loaded successfully` message.
 
-### 访问
+### Access
 
-- 主控制台：http://localhost:8080/index.html
-- 演示页面：http://localhost:8080/widget.html
-- API 地址：http://localhost:5001/api/v1
+- Main Dashboard: http://localhost:8080
+- Demo Pages: http://localhost:8080/demo/*
+- API: http://localhost:5001/api/v1
 
-### 导入预设店铺
+## API Endpoints
 
-主控制台 → 数据源 → 导入新店铺 → 预设店铺 → 点击导入
-
-## API 接口
-
-### 情感分析
+### Emotion Analysis
 
 ```bash
+# Single text analysis
 POST /api/v1/analyze
+{"text": "产品质量很好，物流也很快！"}
 
-{
-  "text": "收到货后发现质量很好，物流也很快！"
-}
-
-# 响应
-{
-  "success": true,
-  "data": {
-    "emotion": {
-      "key": "正面",
-      "label": "满意",
-      "icon": "😊",
-      "category": "positive",
-      "score": 0.95
-    },
-    "all_emotions": [...],
-    "suggestion": {...}
-  }
-}
-```
-
-### 关键词提取
-
-```bash
-POST /api/v1/keywords
-
-{
-  "texts": ["文本1", "文本2", "..."],
-  "top_n": 20
-}
-```
-
-### 痛点检测
-
-```bash
-POST /api/v1/pain_points
-
-{
-  "texts": ["文本1", "文本2", "..."]
-}
-```
-
-### 批量分析
-
-```bash
+# Batch analysis (max 20)
 POST /api/v1/batch_analyze
-
-{
-  "texts": ["文本1", "文本2"]
-}
+{"texts": ["文本1", "文本2", "..."]}
 ```
 
-### 店铺/商品管理
+### Keywords & Pain Points
 
 ```bash
-GET    /api/v1/shops           # 店铺列表
-POST   /api/v1/shops           # 创建店铺
-GET    /api/v1/shops/<id>      # 店铺详情
-DELETE /api/v1/shops/<id>       # 删除店铺
-GET    /api/v1/products        # 商品列表（?shop_id=&keyword=&page=1）
-POST   /api/v1/products        # 添加商品
-DELETE /api/v1/products/<id>   # 删除商品
+# Keyword extraction
+POST /api/v1/keywords
+{"texts": ["文本1", "文本2"], "top_n": 20}
+
+# Pain point detection
+POST /api/v1/pain_points
+{"texts": ["文本1", "文本2"]}
 ```
 
-### 报告管理
+### Reports
 
 ```bash
-POST   /api/v1/reports/generate  # 生成报告
-GET    /api/v1/reports           # 报告列表
-GET    /api/v1/reports/<id>      # 报告详情
-GET    /api/v1/reports/<id>/download  # 下载 HTML 报告
-DELETE /api/v1/reports/<id>      # 删除报告
+POST /api/v1/reports/generate  # Generate report
+GET  /api/v1/reports           # List reports
+GET  /api/v1/reports/<id>      # Report detail
+GET  /api/v1/reports/<id>/download  # Download HTML
+DELETE /api/v1/reports/<id>    # Delete report
 ```
 
-## 嵌入到你的网页
-
-### 方式一：CDN 引入
-
-```html
-<script src="https://你的域名/embed.js"></script>
-<div id="emotion-widget"></div>
-```
-
-### 方式二：下载到本地
-
-```html
-<script src="emotion-widget.js"></script>
-<script>
-  window.EmotionWidgetConfig = {
-    apiBase: 'https://你的API域名/api/v1',
-    position: 'bottom-right'  // 或 'bottom-left'
-  };
-</script>
-<div id="emotion-widget"></div>
-```
-
-## 技术栈
-
-| 模块 | 技术 |
-|---|---|
-| 后端 | Flask + Python |
-| AI 模型 | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` (本地部署) |
-| 数据库 | SQLite |
-| 前端 | 原生 HTML/CSS/JS + ECharts 5.5.0 |
-| 部署 | Docker + Nginx |
-
-## 情绪分类
-
-| 类别 | 说明 |
-|---|---|
-| 正面 (positive) | 满意、高兴、认可 |
-| 中性 (neutral) | 情感不明确，正/负概率接近 |
-| 负面 (negative) | 不满、抱怨、差评 |
-
-> 注：模型支持三分类（正面/负面/中性），中性判断阈值为 0.2。
-
-## 开发
-
-### 本地运行
+### Authentication
 
 ```bash
-cd backend
-pip install -r requirements.txt
-cp .env.example .env
-python app.py
+POST /api/v1/auth/register  # Register
+POST /api/v1/auth/login      # Login
+GET  /api/v1/auth/me        # Current user
+PUT  /api/v1/auth/me        # Update profile
 ```
 
-### 前端独立演示
+### Web Scraping
 
-直接用浏览器打开 `frontend/widget.html` 即可（需先启动后端）。
+```bash
+POST /api/v1/crawl/scrape
+{"urls": ["https://example.com"], "platform": "Generic", "delay": 1.0}
+
+GET /api/v1/crawl/platforms  # Supported platforms
+```
+
+## Demo Pages
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Home | `/demo` | Data source selection, recent activity |
+| Explore | `/demo/explore` | AI-powered search and insights |
+| Monitor | `/demo/monitor` | Real-time sentiment dashboard |
+| Analytics | `/demo/analytics` | Brand analysis reports |
+| Influencer | `/demo/influencer` | Creator authenticity scoring |
+
+## Project Structure
+
+```
+meltwatch/
+├── meltwatch/              # React frontend
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   ├── contexts/       # React contexts
+│   │   ├── lib/            # API client, utilities
+│   │   ├── pages/          # Page components
+│   │   └── App.tsx
+│   ├── package.json
+│   └── vite.config.ts
+├── backend/                # Flask backend
+│   ├── app.py              # Main application
+│   ├── routes/             # API routes
+│   │   ├── analysis.py     # Emotion analysis
+│   │   ├── auth.py         # Authentication
+│   │   ├── crawl.py        # Web scraping
+│   │   └── user.py         # User management
+│   ├── models/             # Database models
+│   ├── utils/              # Utilities
+│   └── requirements.txt
+├── docker/                  # Docker deployment
+│   ├── docker-compose.yml
+│   └── nginx.conf
+└── README.md
+```
+
+## Environment Variables
+
+Create `.env` from `.env.example`:
+
+```bash
+EMOTION_MODEL=uer/roberta-base-finetuned-dianping-chinese
+DATABASE_URL=sqlite:///reviewpulse.db
+SECRET_KEY=your-secret-key-change-in-production
+USE_LOCAL_MODEL=true
+FLASK_ENV=production
+```
 
 ## License
 

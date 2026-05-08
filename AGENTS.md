@@ -17,59 +17,52 @@ Real-time sentiment monitoring and analytics platform for Chinese e-commerce rev
 ## Directory Structure
 
 ```
-meltwatch/
-├── meltwatch/              # React frontend
+Meltwatch/
+├── meltwatch/                # React frontend
 │   ├── src/
-│   │   ├── components/     # UI components
-│   │   │   ├── ui/         # Base UI components
-│   │   │   └── visuals/    # Visual components
-│   │   ├── contexts/        # React contexts
-│   │   ├── lib/            # API client, utilities
-│   │   ├── pages/          # Page components
-│   │   │   ├── DemoHome.tsx
-│   │   │   ├── DemoExplore.tsx
-│   │   │   ├── DemoMonitor.tsx
-│   │   │   ├── DemoAnalytics.tsx
-│   │   │   ├── DemoInfluencer.tsx
-│   │   │   └── DemoLayout.tsx
-│   │   └── App.tsx
-│   ├── public/             # Static assets
+│   │   ├── components/       # UI components
+│   │   │   ├── ui/           # Base UI components
+│   │   │   └── visuals/      # Visual components
+│   │   ├── contexts/          # React contexts
+│   │   ├── lib/              # API client, utilities
+│   │   ├── pages/            # Page components
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── public/               # Static assets (PNG icons)
 │   ├── package.json
 │   ├── tailwind.config.js
 │   └── vite.config.ts
-├── backend/                # Flask backend
-│   ├── app.py              # Main application
-│   ├── config.py            # Configuration
-│   ├── db.py               # Database
+├── backend/                  # Flask backend
+│   ├── app.py                # Main application
+│   ├── config.py             # Configuration
+│   ├── db.py                 # Database
 │   ├── requirements.txt
 │   ├── Dockerfile
-│   ├── models/             # Database models
+│   ├── .env                  # Environment variables
+│   ├── models/               # Database models
 │   │   ├── database.py
 │   │   └── emotion.py
-│   ├── routes/             # API routes
-│   │   ├── analysis.py     # Emotion analysis, keywords, pain points
-│   │   ├── auth.py        # Authentication
-│   │   ├── crawl.py       # Web scraping
-│   │   ├── llm.py         # LLM enhancement
-│   │   └── user.py        # User management
-│   ├── services/           # External services
+│   ├── routes/               # API routes
+│   │   ├── analysis.py        # Emotion analysis, keywords, pain points
+│   │   ├── auth.py           # Authentication
+│   │   ├── crawl.py          # Web scraping
+│   │   ├── llm.py            # LLM enhancement
+│   │   └── user.py           # User management
+│   ├── services/             # External services
 │   │   └── zhipu_client.py  # Zhipu AI client
-│   └── utils/              # Utilities
-│       ├── auth.py        # JWT, token validation
-│       └── crawler.py      # Web scraper framework
-├── docker/                  # Docker deployment
+│   └── utils/                # Utilities
+│       ├── auth.py           # JWT, token validation
+│       └── crawler.py        # Web scraper framework
+├── docker/                    # Docker deployment
 │   ├── docker-compose.yml
 │   ├── nginx.conf
+│   ├── .env
 │   └── start.sh
-├── docs/                    # Documentation
-├── scripts/                 # Build scripts
-├── share/                   # Shared resources
-├── bin/                     # Executables
-├── .env.example            # Environment variables
-├── docker-compose.yml       # Root compose file
-├── AGENTS.md               # This file
-├── CHANGELOG.md
-└── README.md
+├── docker-compose.yml          # Root compose file
+├── .gitignore
+├── README.md
+├── AGENTS.md                  # This file
+└── CHANGELOG.md
 ```
 
 ## Development Standards

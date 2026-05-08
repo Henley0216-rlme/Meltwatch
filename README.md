@@ -203,34 +203,49 @@ GET /api/v1/crawl/platforms  # 支持的平台
 ## 项目结构
 
 ```
-meltwatch/
-├── meltwatch/              # React 前端
+Meltwatch/
+├── meltwatch/                # React 前端
 │   ├── src/
-│   │   ├── components/     # UI 组件
-│   │   ├── contexts/       # React Context
-│   │   ├── lib/           # API 客户端
-│   │   ├── pages/         # 页面组件
-│   │   └── App.tsx
-│   ├── public/             # 静态资源
-│   └── vite.config.ts
-├── backend/                # Flask 后端
-│   ├── app.py             # 主应用
-│   ├── routes/            # API 路由
-│   │   ├── analysis.py    # 情感分析
-│   │   ├── auth.py        # 用户认证
-│   │   ├── crawl.py       # 网页爬取
-│   │   ├── llm.py         # LLM 增强
-│   │   └── user.py        # 用户管理
-│   ├── models/            # 数据模型
-│   ├── services/          # 外部服务
+│   │   ├── components/       # UI 组件
+│   │   ├── contexts/         # React Context
+│   │   ├── lib/             # API 客户端
+│   │   ├── pages/           # 页面组件
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── public/               # 静态资源 (PNG 图标)
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tailwind.config.js
+├── backend/                  # Flask 后端
+│   ├── app.py               # 主应用入口
+│   ├── config.py            # 配置
+│   ├── db.py                # 数据库
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   ├── .env                 # 环境变量
+│   ├── models/              # 数据模型
+│   │   ├── database.py
+│   │   └── emotion.py
+│   ├── routes/              # API 路由
+│   │   ├── analysis.py      # 情感分析
+│   │   ├── auth.py          # 用户认证
+│   │   ├── crawl.py         # 网页爬取
+│   │   ├── llm.py           # LLM 增强
+│   │   └── user.py          # 用户管理
+│   ├── services/            # 外部服务
 │   │   └── zhipu_client.py  # 智谱客户端
-│   └── requirements.txt
-├── docker/                 # Docker 部署
+│   └── utils/                # 工具函数
+│       ├── auth.py           # JWT 认证
+│       └── crawler.py        # 爬虫框架
+├── docker/                    # Docker 部署配置
 │   ├── docker-compose.yml
 │   ├── nginx.conf
 │   ├── .env
 │   └── start.sh
-└── README.md
+├── docker-compose.yml        # 根目录 Docker Compose
+├── README.md
+├── AGENTS.md
+└── CHANGELOG.md
 ```
 
 ## 环境变量

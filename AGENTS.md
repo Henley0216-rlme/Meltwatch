@@ -85,6 +85,7 @@ meltwatch/
 | `EMOTION_MODEL` | Sentiment model | `uer/roberta-base-finetuned-dianping-chinese` |
 | `USE_LOCAL_MODEL` | Use local model | `true` |
 | `FLASK_ENV` | Flask environment | `production` |
+| `ZHIPU_API_KEY` | Zhipu AI API key | (optional) |
 
 ### API Design
 
@@ -128,6 +129,16 @@ Base URL: `/api/v1`
 |----------|--------|-------------|
 | `/crawl/scrape` | POST | Scrape pages |
 | `/crawl/platforms` | GET | Supported platforms |
+
+#### LLM Enhancement (Zhipu AI)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/llm/status` | GET | Check LLM status |
+| `/llm/analyze` | POST | Enhanced analysis with context |
+| `/llm/batch_analyze` | POST | Batch with insights |
+| `/llm/generate_response` | POST | Generate reply suggestions |
+| `/llm/summarize_reviews` | POST | AI-powered summary |
+| `/llm/chat` | POST | General chat |
 
 ### Emotion Classification
 

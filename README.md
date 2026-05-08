@@ -124,6 +124,36 @@ POST /api/v1/crawl/scrape
 GET /api/v1/crawl/platforms  # Supported platforms
 ```
 
+### LLM Enhancement (Zhipu AI)
+
+Enable LLM-powered features by setting `ZHIPU_API_KEY` in environment:
+
+```bash
+# Get API key at https://open.bigmodel.cn/
+ZHIPU_API_KEY=your_api_key_here
+```
+
+```bash
+# Check LLM status
+GET /api/v1/llm/status
+
+# Enhanced sentiment analysis with context understanding
+POST /api/v1/llm/analyze
+{"text": "评论文本", "product_info": "产品信息"}
+
+# Batch analyze with aggregated insights
+POST /api/v1/llm/batch_analyze
+{"texts": ["评论1", "评论2", ...], "batch_size": 10}
+
+# Generate response suggestion for negative reviews
+POST /api/v1/llm/generate_response
+{"negative_review": "负面评论文本", "tone": "professional"}
+
+# Summarize reviews with AI
+POST /api/v1/llm/summarize_reviews
+{"reviews": ["评论1", "评论2"], "product_name": "产品名称"}
+```
+
 ## Demo Pages
 
 | Page | Route | Description |
@@ -153,8 +183,11 @@ meltwatch/
 │   │   ├── analysis.py     # Emotion analysis
 │   │   ├── auth.py         # Authentication
 │   │   ├── crawl.py        # Web scraping
+│   │   ├── llm.py          # LLM enhancement
 │   │   └── user.py         # User management
 │   ├── models/             # Database models
+│   ├── services/           # External services
+│   │   └── zhipu_client.py # Zhipu AI client
 │   ├── utils/              # Utilities
 │   └── requirements.txt
 ├── docker/                  # Docker deployment
@@ -173,7 +206,41 @@ DATABASE_URL=sqlite:///reviewpulse.db
 SECRET_KEY=your-secret-key-change-in-production
 USE_LOCAL_MODEL=true
 FLASK_ENV=production
+# Optional: Zhipu AI for LLM enhancement
+ZHIPU_API_KEY=your_zhipu_api_key_here
 ```
+
+## LLM Integration Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Frontend (React)                        │
+│  ┌─────────────┐  ┌──────────────┐  ┌───────────────────┐ │
+│  │ Local Model │  │ LLM Analysis │  │ Report Generation │ │
+│  │  (Fast)     │  │  (Deep)      │  │                  │ │
+│  └──────┬──────┘  └──────┬───────┘  └────────┬─────────┘ │
+└─────────┼────────────────┼─────────────────────┼────────────┘
+          │                │                     │
+          ▼                ▼                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Backend (Flask)                           │
+│  ┌────────────────┐  ┌──────────────────────────────────┐ │
+│  │ Local Model    │  │     Zhipu GLM (Optional)          │ │
+│  │ (uer/roberta) │  │  • Context-aware analysis         │ │
+│  │ • Fast triage │  │  • Batch insights                │ │
+│  │ • Real-time   │  │  • Response suggestions           │ │
+│  └────────────────┘  └──────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### When to Use Each
+
+| Scenario | Use | Reason |
+|----------|-----|--------|
+| High volume, fast response | Local model | No API cost, low latency |
+| Complex context needed | Local + LLM | Deep understanding |
+| Bulk analysis + report | LLM batch | Aggregated insights |
+| Negative review handling | LLM generate_response | Natural language suggestions |
 
 ## License
 

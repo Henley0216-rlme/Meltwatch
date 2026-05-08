@@ -597,3 +597,206 @@ export async function getModelInfo(): Promise<{
   const response = await fetch(`${API_BASE}/models`);
   return response.json();
 }
+
+// ==================== LLM (Zhipu AI) APIs ====================
+
+export interface LLMStatusResponse {
+  success: boolean;
+  data?: {
+    enabled: boolean;
+    provider: string;
+    model: string | null;
+    message: string;
+  };
+  error?: string;
+}
+
+export interface LLMAnalysisResult {
+  success: boolean;
+  data?: {
+    original_text: string;
+    analysis: {
+      sentiment: "positive" | "negative" | "neutral";
+      intensity: number;
+      aspects: string[];
+      summary: string;
+      suggestion: string;
+      keywords: string[];
+    };
+    model: string;
+  };
+  error?: string;
+}
+
+export interface LLMBatchResult {
+  success: boolean;
+  data?: {
+    statistics: {
+      total: number;
+      positive: number;
+      negative: number;
+      neutral: number;
+      positive_rate: number;
+    };
+    top_keywords: Array<{ word: string; count: number }>;
+    detailed_analyses: Array<{
+      sentiment: string;
+      intensity: number;
+      aspects: string[];
+      summary: string;
+      suggestion: string;
+      keywords: string[];
+    }>;
+    insight_report: string | null;
+  };
+  error?: string;
+}
+
+export interface LLMResponseResult {
+  success: boolean;
+  data?: {
+    original_review: string;
+    suggested_response: string;
+  };
+  error?: string;
+}
+
+export interface LLMSummaryResult {
+  success: boolean;
+  data?: {
+    report: {
+      total_count: number;
+      sentiment_summary: string;
+      positive_aspects: string[];
+      negative_aspects: string[];
+      key_findings: string[];
+      recommendations: string[];
+    };
+    review_count: number;
+    product_name: string;
+  };
+  error?: string;
+}
+
+/**
+ * Check LLM integration status
+ */
+export async function getLLMStatus(): Promise<LLMStatusResponse> {
+  const response = await fetch(`${API_BASE}/llm/status`);
+  return response.json();
+}
+
+/**
+ * Enhanced sentiment analysis with LLM
+ */
+export async function llmAnalyze(
+  text: string,
+  productInfo?: string,
+  previousReviews?: string[]
+): Promise<LLMAnalysisResult> {
+  const response = await fetch(`${API_BASE}/llm/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text,
+      product_info: productInfo,
+      previous_reviews: previousReviews,
+    }),
+  });
+  return response.json();
+}
+
+/**
+ * Batch analyze with aggregated insights
+ */
+export async function llmBatchAnalyze(
+  texts: string[],
+  batchSize: number = 10
+): Promise<LLMBatchResult> {
+  const response = await fetch(`${API_BASE}/llm/batch_analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      texts,
+      batch_size: batchSize,
+    }),
+  });
+  return response.json();
+}
+
+/**
+ * Generate suggested response for negative reviews
+ */
+export async function llmGenerateResponse(
+  negativeReview: string,
+  tone: "professional" | "casual" | "friendly" = "professional"
+): Promise<LLMResponseResult> {
+  const response = await fetch(`${API_BASE}/llm/generate_response`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      negative_review: negativeReview,
+      tone,
+    }),
+  });
+  return response.json();
+}
+
+/**
+ * Summarize reviews with LLM
+ */
+export async function llmSummarizeReviews(
+  reviews: string[],
+  productName?: string
+): Promise<LLMSummaryResult> {
+  const response = await fetch(`${API_BASE}/llm/summarize_reviews`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      reviews,
+      product_name: productName,
+    }),
+  });
+  return response.json();
+}
+
+/**
+ * General chat with GLM
+ */
+export async function llmChat(
+  messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
+  temperature?: number,
+  maxTokens?: number
+): Promise<{
+  success: boolean;
+  data?: {
+    content: string;
+    usage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+  error?: string;
+}> {
+  const response = await fetch(`${API_BASE}/llm/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+    }),
+  });
+  return response.json();
+}

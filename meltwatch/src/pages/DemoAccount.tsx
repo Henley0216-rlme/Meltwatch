@@ -53,10 +53,17 @@ export function DemoAccount() {
         : await register(email, password, username);
 
       if (result.success && result.data) {
+        // Save API key if provided (for new users or updates)
+        if (apiKey.trim()) {
+          await updateApiKey(apiKey.trim());
+        }
         await checkUser();
         setEmail("");
         setPassword("");
         setUsername("");
+        if (!apiKey.trim()) {
+          setApiKey("");
+        }
       } else {
         setError(result.error || (zh ? "操作失败" : "Operation failed"));
       }
@@ -108,7 +115,7 @@ export function DemoAccount() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 mb-5">
             <h2 className="font-semibold text-gray-900">{zh ? "登录账户" : "Sign In"}</h2>
             <p className="text-xs text-gray-400">
-              {zh ? "登录后可在 Explore 使用自己的智谱 API Key" : "Sign in to use your own Zhipu API Key in Explore"}
+              {zh ? "填写 API Key 后可使用自己的智谱配额进行 AI 对话" : "Enter your API Key to use your own Zhipu quota for AI chat"}
             </p>
           </div>
 
@@ -176,6 +183,22 @@ export function DemoAccount() {
                   minLength={6}
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">
+                  {zh ? "智谱 API Key（可选）" : "Zhipu API Key (Optional)"}
+                </label>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder={zh ? "输入您的智谱 API Key..." : "Enter your Zhipu API Key..."}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#2BB7B8]"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  {zh ? "不填则使用系统默认 API" : "Leave empty to use system API"}
+                </p>
               </div>
 
               {error && (

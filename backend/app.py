@@ -29,6 +29,10 @@ def health_check():
 from routes.llm import llm_bp
 app.register_blueprint(llm_bp)
 
+# Register Auth blueprint for user authentication
+from auth import auth_bp
+app.register_blueprint(auth_bp)
+
 
 if __name__ == '__main__':
     print("✅ Meltwatch API started")

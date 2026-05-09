@@ -82,9 +82,7 @@ export interface User {
   id: number;
   email: string;
   username: string;
-  is_active: boolean;
-  is_premium: boolean;
-  subscription_tier: string;
+  zhipu_api_key?: string;
   created_at: string;
 }
 
@@ -393,6 +391,26 @@ export async function updateProfile(data: {
       ...getAuthHeaders(),
     },
     body: JSON.stringify(data),
+  });
+
+  return response.json();
+}
+
+/**
+ * Update user's Zhipu API key
+ */
+export async function updateApiKey(apiKey: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> {
+  const response = await fetch(`${API_BASE}/auth/me/api-key`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ zhipu_api_key: apiKey }),
   });
 
   return response.json();

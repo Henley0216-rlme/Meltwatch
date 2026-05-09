@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
-import { TrendingUp, Send, ChevronRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { TrendingUp, Send, ChevronRight, User, Key } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { llmChat, getLLMStatus } from "@/lib/api";
+import { llmChat, getCurrentUser, type User as UserType } from "@/lib/api";
 
 const TEAL = "#2BB7B8";
 
@@ -40,7 +40,23 @@ export function DemoExplore() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<UserType | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      const result = await getCurrentUser();
+      if (result.success && result.data) {
+        setUser(result.data);
+      }
+    } catch (e) {
+      console.error("Check user failed:", e);
+    }
+  };
 
   async function send(text?: string) {
     const q = (text ?? query).trim();
@@ -51,10 +67,8 @@ export function DemoExplore() {
     setLoading(true);
 
     try {
-      const status = await getLLMStatus();
-      if (!status.data?.enabled) {
-        throw new Error(zh ? "LLM 未配置，请设置 ZHIPU_API_KEY" : "LLM not configured. Set ZHIPU_API_KEY");
-      }
+      // Check user auth status - if logged in with own API key, use chat_with_context
+      await checkUser();
 
       const history = messages.map((m) => ({
         role: m.role as "user" | "assistant",
@@ -90,6 +104,26 @@ export function DemoExplore() {
               <h2 className="text-xl font-bold text-gray-900 mb-1">{zh ? "Meltwatch 智能探索" : "Meltwatch AI Explore"}</h2>
               <p className="text-sm text-gray-500">{zh ? "我是你的 AI 搜索助手，帮助你创建和优化搜索。" : "I am your AI search assistant. I will help you create and refine searches."}</p>
             </div>
+
+            {/* User Status */}
+            {user && (
+              <div className="max-w-2xl mx-auto w-full">
+                <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                  <User size={14} />
+                  <span>{user.username}</span>
+                  {user.zhipu_api_key ? (
+                    <span className="flex items-center gap-1 text-green-600">
+                      <Key size={12} />
+                      {zh ? "使用自己的 API" : "Using own API"}
+                    </span>
+                  ) : (
+                    <span className="text-amber-600">
+                      {zh ? "（使用系统 API）" : "(Using system API)"}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Search type cards */}
             <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto w-full">

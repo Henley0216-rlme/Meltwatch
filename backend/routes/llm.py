@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 LLM-enhanced Analysis Routes
-大模型增强分析路由
+大模型增强分析路由 - 支持用户自定义API Key
 """
 
 import json
+import jwt
+import time
 from flask import Blueprint, request, jsonify
 from services.zhipu_client import (
     get_zhipu_client,
@@ -18,23 +20,75 @@ from functools import wraps
 
 llm_bp = Blueprint("llm", __name__, url_prefix="/api/v1/llm")
 
+JWT_SECRET = "your-secret-key-change-in-production"
 
-def require_zhipu(f):
-    """Decorator to require Zhipu AI configuration"""
+
+def get_user_from_token(token: str):
+    """Get user data from JWT token"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return payload
+    except:
+        return None
+
+
+def get_user_api_key(user_id: int):
+    """Get user's API key from database"""
+    try:
+        import sqlite3
+        from pathlib import Path
+        DB_PATH = Path(__file__).parent / "users.db"
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT zhipu_api_key FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        conn.close()
+        return row["zhipu_api_key"] if row else None
+    except:
+        return None
+
+
+def require_zhipu_or_user(f):
+    """Decorator to require Zhipu AI configuration (system or user)"""
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not is_zhipu_enabled():
-            return jsonify({
-                "success": False,
-                "error": "Zhipu AI not configured. Set ZHIPU_API_KEY environment variable."
-            }), 503
-        client = get_zhipu_client()
-        if not client:
-            return jsonify({
-                "success": False,
-                "error": "Failed to initialize Zhipu client"
-            }), 500
-        return f(client, *args, **kwargs)
+        user_api_key = None
+        user_id = None
+
+        # Try to get user from token
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            payload = get_user_from_token(token)
+            if payload:
+                user_id = payload.get("user_id")
+                user_api_key = get_user_api_key(user_id)
+
+        # If no user API key, use system default
+        if not user_api_key:
+            if not is_zhipu_enabled():
+                return jsonify({
+                    "success": False,
+                    "error": "Zhipu AI not configured. Please set your API key in account settings."
+                }), 503
+            client = get_zhipu_client()
+            if not client:
+                return jsonify({
+                    "success": False,
+                    "error": "Failed to initialize Zhipu client"
+                }), 500
+        else:
+            # Create client with user's API key
+            try:
+                client = ZhipuClient(api_key=user_api_key)
+            except:
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid API key. Please check your settings."
+                }), 500
+
+        return f(client, user_id, *args, **kwargs)
     return decorated
 
 
@@ -54,8 +108,8 @@ def llm_status():
 
 
 @llm_bp.route("/analyze", methods=["POST"])
-@require_zhipu
-def llm_analyze(client: ZhipuClient):
+@require_zhipu_or_user
+def llm_analyze(client: ZhipuClient, user_id: int = None):
     """
     Enhanced sentiment analysis with LLM context understanding
     POST /api/v1/llm/analyze
@@ -91,8 +145,8 @@ def llm_analyze(client: ZhipuClient):
 
 
 @llm_bp.route("/batch_analyze", methods=["POST"])
-@require_zhipu
-def llm_batch_analyze(client: ZhipuClient):
+@require_zhipu_or_user
+def llm_batch_analyze(client: ZhipuClient, user_id: int = None):
     """
     Batch analyze with aggregated insights
     POST /api/v1/llm/batch_analyze
@@ -125,8 +179,8 @@ def llm_batch_analyze(client: ZhipuClient):
 
 
 @llm_bp.route("/generate_response", methods=["POST"])
-@require_zhipu
-def llm_generate_response(client: ZhipuClient):
+@require_zhipu_or_user
+def llm_generate_response(client: ZhipuClient, user_id: int = None):
     """
     Generate suggested response for negative reviews
     POST /api/v1/llm/generate_response
@@ -156,8 +210,8 @@ def llm_generate_response(client: ZhipuClient):
 
 
 @llm_bp.route("/chat", methods=["POST"])
-@require_zhipu
-def llm_chat(client: ZhipuClient):
+@require_zhipu_or_user
+def llm_chat(client: ZhipuClient, user_id: int = None):
     """
     General purpose chat with GLM
     POST /api/v1/llm/chat
@@ -199,8 +253,8 @@ def llm_chat(client: ZhipuClient):
 
 
 @llm_bp.route("/summarize_reviews", methods=["POST"])
-@require_zhipu
-def llm_summarize_reviews(client: ZhipuClient):
+@require_zhipu_or_user
+def llm_summarize_reviews(client: ZhipuClient, user_id: int = None):
     """
     Generate a summary report from review texts
     POST /api/v1/llm/summarize_reviews
@@ -274,8 +328,8 @@ def llm_summarize_reviews(client: ZhipuClient):
 
 
 @llm_bp.route("/chat_with_context", methods=["POST"])
-@require_zhipu
-def llm_chat_with_context(client: ZhipuClient):
+@require_zhipu_or_user
+def llm_chat_with_context(client: ZhipuClient, user_id: int = None):
     """
     Chat with knowledge base and skill context injection
     POST /api/v1/llm/chat_with_context

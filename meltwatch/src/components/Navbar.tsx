@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, ChevronDown, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { getCurrentUser, logout, type User as UserType } from "@/lib/api";
 
 type SubItem = { label: string; href: string };
 type ColumnItem = { label: string; description?: string; href: string };
@@ -44,9 +45,12 @@ type NavItem = {
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -55,6 +59,30 @@ export function Navbar() {
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      const result = await getCurrentUser();
+      if (result.success && result.data) {
+        setUser(result.data);
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    setUserMenuOpen(false);
+    navigate("/");
+  };
 
   const zh = language === "zh";
 
@@ -488,12 +516,43 @@ export function Navbar() {
             </button>
           </div>
 
-          <a
-            href="#"
-            className="hidden md:block px-3 py-2 text-sm font-bold text-ink-600 hover:text-ink transition-colors"
-          >
-            {t.nav.signIn}
-          </a>
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-bold text-ink-600 hover:text-ink transition-colors"
+              >
+                <User size={16} />
+                <span>{user.username}</span>
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 top-full mt-1 w-48 bg-cream border border-ink/10 rounded-xl shadow-xl py-1 z-50">
+                  <Link
+                    to="/demo/account"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-ink-600 hover:bg-ink/[0.05] transition-colors"
+                  >
+                    <User size={14} />
+                    {zh ? "账户设置" : "Account"}
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut size={14} />
+                    {zh ? "退出登录" : "Sign Out"}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/demo/account"
+              className="hidden md:block px-3 py-2 text-sm font-bold text-ink-600 hover:text-ink transition-colors"
+            >
+              {t.nav.signIn}
+            </Link>
+          )}
           <a
             href="#"
             className="hidden md:block px-3 py-2 text-sm font-bold text-ink-600 hover:text-ink transition-colors"

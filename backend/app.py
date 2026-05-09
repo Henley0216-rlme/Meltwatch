@@ -6,9 +6,12 @@ Emotion analysis API with user authentication
 
 import os
 import torch
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import lru_cache
+
+load_dotenv()
 
 # Import routes
 from routes.auth import auth_bp

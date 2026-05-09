@@ -4,12 +4,16 @@ LLM-enhanced Analysis Routes
 大模型增强分析路由
 """
 
+import json
 from flask import Blueprint, request, jsonify
 from services.zhipu_client import (
     get_zhipu_client,
     is_zhipu_enabled,
     ZhipuClient,
 )
+from services.knowledge_base import search_knowledge_base, format_knowledge_context
+from services.skill_engine import match_skill, get_skill_engine
+from services.learning_engine import get_learned_context
 from functools import wraps
 
 llm_bp = Blueprint("llm", __name__, url_prefix="/api/v1/llm")
@@ -267,3 +271,113 @@ def llm_summarize_reviews(client: ZhipuClient):
             "error": "Failed to parse summary",
             "raw": result["data"]["content"],
         }), 500
+
+
+@llm_bp.route("/chat_with_context", methods=["POST"])
+@require_zhipu
+def llm_chat_with_context(client: ZhipuClient):
+    """
+    Chat with knowledge base and skill context injection
+    POST /api/v1/llm/chat_with_context
+
+    Body:
+    {
+        "messages": [{"role": "user", "content": "..."}],
+        "inject_knowledge": true,
+        "skill_id": "brand-analysis"（可选）,
+        "language": "zh"（可选，默认zh）
+    }
+    """
+    data = request.get_json()
+
+    if not data or "messages" not in data:
+        return jsonify({"success": False, "error": "Missing messages parameter"}), 400
+
+    messages = data["messages"]
+    inject_knowledge = data.get("inject_knowledge", True)
+    skill_id = data.get("skill_id")
+    language = data.get("language", "zh")
+
+    if not isinstance(messages, list) or len(messages) == 0:
+        return jsonify({"success": False, "error": "messages must be a non-empty array"}), 400
+
+    final_messages = list(messages)
+
+    if inject_knowledge and final_messages:
+        last_user_message = final_messages[-1].get("content", "")
+
+        skill_result = match_skill(last_user_message, language)
+        matched_skill = None
+        if skill_result.get("success") and skill_result.get("skill"):
+            matched_skill = skill_result["skill"]
+            if language == "zh" and matched_skill.get("system_prompt_zh"):
+                system_content = matched_skill["system_prompt_zh"]
+            else:
+                system_content = matched_skill.get("system_prompt", "")
+        else:
+            engine = get_skill_engine()
+            default_system = engine.get_skill_prompt(
+                type("Skill", (), {
+                    "system_prompt": "你是一位专业的电商运营助手，帮助用户分析品牌舆情、市场趋势和用户反馈。",
+                    "system_prompt_zh": "你是一位专业的电商运营助手，帮助用户分析品牌舆情、市场趋势和用户反馈。"
+                })(),
+                language
+            )
+            system_content = default_system
+
+        kb_context = ""
+        if matched_skill and matched_skill.get("related_knowledge"):
+            kb_results = search_knowledge_base(last_user_message, limit=3)
+            if kb_results.get("success"):
+                kb_context = format_knowledge_context(kb_results.get("documents", []))
+        else:
+            kb_results = search_knowledge_base(last_user_message, limit=3)
+            if kb_results.get("success") and kb_results.get("documents"):
+                kb_context = format_knowledge_context(kb_results.get("documents", []))
+
+        learned_context = get_learned_context(last_user_message, language)
+
+        if system_content or kb_context or learned_context:
+            full_context = ""
+            if system_content:
+                full_context += f"{system_content}\n\n"
+            if kb_context:
+                full_context += f"{kb_context}\n"
+            if learned_context:
+                full_context += f"{learned_context}\n"
+
+            final_messages = [
+                {"role": "system", "content": full_context.strip()},
+                *final_messages
+            ]
+
+    result = client.chat(
+        messages=final_messages,
+        temperature=data.get("temperature"),
+        max_tokens=data.get("max_tokens"),
+    )
+
+    if result["success"]:
+        response_data = {
+            "content": result["data"]["content"],
+            "usage": result["data"].get("usage"),
+        }
+
+        if matched_skill:
+            response_data["skill"] = {
+                "id": matched_skill.get("id"),
+                "name": matched_skill.get("name"),
+                "name_zh": matched_skill.get("name_zh"),
+            }
+
+        if inject_knowledge and last_user_message:
+            kb_results = search_knowledge_base(last_user_message, limit=3)
+            if kb_results.get("success") and kb_results.get("documents"):
+                response_data["knowledge_used"] = [
+                    {"id": d["id"], "title": d.get("title_zh") or d.get("title", "")}
+                    for d in kb_results["documents"]
+                ]
+
+        return jsonify({"success": True, "data": response_data})
+
+    return jsonify({"success": False, "error": result["error"]}), 500

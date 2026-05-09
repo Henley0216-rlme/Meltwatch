@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { TrendingUp, Send, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { llmChat, getLLMStatus } from "@/lib/api";
 
 const TEAL = "#2BB7B8";
 
@@ -41,17 +42,39 @@ export function DemoExplore() {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  function send(text?: string) {
+  async function send(text?: string) {
     const q = (text ?? query).trim();
     if (!q) return;
+
     setMessages((m) => [...m, { role: "user", text: q }]);
     setQuery("");
     setLoading(true);
-    setTimeout(() => {
-      const key = q.includes("sentiment") || q.includes("情感") ? "sentiment" : "default";
-      setMessages((m) => [...m, { role: "assistant", text: MOCK[lang][key] }]);
+
+    try {
+      const status = await getLLMStatus();
+      if (!status.data?.enabled) {
+        throw new Error(zh ? "LLM 未配置，请设置 ZHIPU_API_KEY" : "LLM not configured. Set ZHIPU_API_KEY");
+      }
+
+      const history = messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.text,
+      }));
+      history.push({ role: "user", content: q });
+
+      const result = await llmChat(history);
+
+      if (result.success && result.data) {
+        setMessages((m) => [...m, { role: "assistant", text: result.data!.content }]);
+      } else {
+        throw new Error(result.error || (zh ? "API 调用失败" : "API call failed"));
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : (zh ? "未知错误" : "Unknown error");
+      setMessages((m) => [...m, { role: "assistant", text: `❌ ${errorMsg}` }]);
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   }
 
   return (

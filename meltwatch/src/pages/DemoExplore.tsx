@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
-import { TrendingUp, Send, ChevronRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { TrendingUp, Send, ChevronRight, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { llmChat } from "@/lib/api";
 
 const TEAL = "#2BB7B8";
 
@@ -29,7 +30,7 @@ const MOCK = {
   },
 };
 
-type Msg = { role: "user" | "assistant"; text: string };
+type Msg = { role: "user" | "assistant"; text: string; error?: boolean };
 
 export function DemoExplore() {
   const { language } = useLanguage();
@@ -39,19 +40,62 @@ export function DemoExplore() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [apiAvailable, setApiAvailable] = useState<boolean | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  function send(text?: string) {
+  // 滚动到最新消息
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
+
+  // 检查 API 可用性
+  useEffect(() => {
+    const checkApi = async () => {
+      try {
+        const response = await fetch("/api/v1/llm/status");
+        const result = await response.json();
+        setApiAvailable(result.data?.enabled || false);
+      } catch {
+        setApiAvailable(false);
+      }
+    };
+    checkApi();
+  }, []);
+
+  async function send(text?: string) {
     const q = (text ?? query).trim();
     if (!q) return;
+
     setMessages((m) => [...m, { role: "user", text: q }]);
     setQuery("");
     setLoading(true);
-    setTimeout(() => {
-      const key = q.includes("sentiment") || q.includes("情感") ? "sentiment" : "default";
-      setMessages((m) => [...m, { role: "assistant", text: MOCK[lang][key] }]);
+
+    try {
+      const result = await llmChat([
+        { role: "user", content: q }
+      ]);
+
+      if (result.success && result.data?.content) {
+        setMessages((m) => [...m, { role: "assistant", text: result.data!.content }]);
+      } else {
+        const errorMsg = zh 
+          ? "API 响应出错。请确保已设置 ZHIPU_API_KEY 环境变量。" 
+          : "API Error. Please ensure ZHIPU_API_KEY is set.";
+        setMessages((m) => [...m, { role: "assistant", text: errorMsg, error: true }]);
+      }
+    } catch (error) {
+      const errorMsg = zh 
+        ? `错误: ${error instanceof Error ? error.message : "未知错误"}。请确保后端服务正在运行。`
+        : `Error: ${error instanceof Error ? error.message : "Unknown error"}. Ensure the backend is running.`;
+      setMessages((m) => [...m, { role: "assistant", text: errorMsg, error: true }]);
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   }
 
   return (
@@ -114,8 +158,15 @@ export function DemoExplore() {
         {/* Messages */}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-2xl rounded-2xl px-5 py-4 text-sm leading-relaxed whitespace-pre-line ${msg.role === "user" ? "text-white ml-8" : "bg-white border border-gray-100 shadow-sm text-gray-700 mr-8"}`}
+            <div className={`max-w-2xl rounded-2xl px-5 py-4 text-sm leading-relaxed whitespace-pre-line ${
+              msg.role === "user" 
+                ? "text-white ml-8" 
+                : msg.error 
+                  ? "bg-red-50 border border-red-200 text-red-700 mr-8"
+                  : "bg-white border border-gray-100 shadow-sm text-gray-700 mr-8"
+            }`}
               style={msg.role === "user" ? { backgroundColor: TEAL } : {}}>
+              {msg.error && <AlertCircle className="inline mr-2" size={16} />}
               {msg.text}
             </div>
           </div>
@@ -127,21 +178,28 @@ export function DemoExplore() {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
       <div className="bg-white border-t border-gray-200 px-8 py-4 flex-shrink-0">
         <div className="max-w-2xl mx-auto">
+          {apiAvailable === false && (
+            <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex gap-2 text-sm text-yellow-800">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              <span>{zh ? "智谱 API 未配置或不可用。请设置 ZHIPU_API_KEY 环境变量。" : "Zhipu API is not configured. Please set ZHIPU_API_KEY environment variable."}</span>
+            </div>
+          )}
           <div className="flex items-end gap-3 bg-gray-50 rounded-2xl border border-gray-200 px-5 py-3 focus-within:border-[#2BB7B8] transition-colors">
             <textarea ref={inputRef} value={query} onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder={zh ? "向 AI 提问..." : "Message AI Search Assistant"}
               rows={1} className="flex-1 resize-none bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none leading-relaxed" />
-            <button onClick={() => send()} disabled={!query.trim()} className="w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-40" style={{ backgroundColor: TEAL }}>
+            <button onClick={() => send()} disabled={!query.trim() || loading} className="w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-40" style={{ backgroundColor: TEAL }}>
               <Send size={14} />
             </button>
           </div>
-          <p className="text-[10px] text-gray-400 mt-1.5 text-center">{zh ? "AI 可能出错，请以实际数据为准。" : "The AI Search Assistant can make mistakes."}</p>
+          <p className="text-[10px] text-gray-400 mt-1.5 text-center">{zh ? "基于智谱 GLM-4 AI 模型，可能出错，请以实际数据为准。" : "Powered by Zhipu GLM-4. The AI may make mistakes, please verify with actual data."}</p>
         </div>
       </div>
     </div>

@@ -10,13 +10,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import lru_cache
 
-# Import routes
-from routes.auth import auth_bp
-from routes.user import user_bp
-from routes.crawl import crawl_bp
-from routes.analysis import analysis_bp
-from routes.llm import llm_bp
-
 # Import database
 from models.database import init_db
 
@@ -163,14 +156,6 @@ def list_models():
             "cuda_available": torch.cuda.is_available()
         }
     })
-
-
-# ==================== Register Blueprints ====================
-app.register_blueprint(auth_bp)
-app.register_blueprint(user_bp)
-app.register_blueprint(crawl_bp)
-app.register_blueprint(analysis_bp)
-app.register_blueprint(llm_bp)
 
 
 if __name__ == '__main__':

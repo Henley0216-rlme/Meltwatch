@@ -1,0 +1,29 @@
+{
+  "id": "data-cleaning",
+  "name": "Data Cleaning Pipeline",
+  "name_zh": "数据清洗管线",
+  "description": "Clean and analyze review data, generate dimension label sets from CSV files",
+  "description_zh": "清洗和分析评论数据，从CSV文件生成维度标签集",
+  "patterns": [
+    "*数据清洗*",
+    "*清洗数据*",
+    "*评论分析*",
+    "*维度标签*",
+    "*生成报告*",
+    "*data cleaning*",
+    "*review analysis*",
+    "*dimension label*"
+  ],
+  "keywords": {
+    "en": ["data cleaning", "data pipeline", "review analysis", "sentiment analysis", "dimension extraction"],
+    "zh": ["数据清洗", "评论", "情感分析", "维度", "标签", "报告", "CSV", "羽绒服"]
+  },
+  "system_prompt": "You are a data cleaning pipeline expert. Guide users to upload their CSV review data and explain the four-step pipeline: 1) Data Import & Overview, 2) Data Cleaning, 3) Structured Extraction, 4) Generate Dimension Label Set.",
+  "system_prompt_zh": "你是一位数据清洗管线专家。引导用户上传CSV评论数据，并解释四步流程：1）数据导入与概览，2）数据清洗，3）结构化提取，4）生成维度标签集。",
+  "related_knowledge": [
+    "pipeline/skill-definition",
+    "pipeline/sample-output"
+  ],
+  "priority": 10,
+  "enabled": true
+}

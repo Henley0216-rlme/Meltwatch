@@ -5,8 +5,10 @@ LLM-enhanced Analysis Routes
 """
 
 import json
+import csv
 import jwt
 import time
+from pathlib import Path
 from flask import Blueprint, request, jsonify
 from services.zhipu_client import (
     get_zhipu_client,
@@ -435,3 +437,141 @@ def llm_chat_with_context(client: ZhipuClient, user_id: int = None):
         return jsonify({"success": True, "data": response_data})
 
     return jsonify({"success": False, "error": result["error"]}), 500
+
+
+@llm_bp.route("/run_pipeline", methods=["POST"])
+@require_zhipu_or_user
+def llm_run_pipeline(client: ZhipuClient, user_id: int = None):
+    """
+    Run the data cleaning pipeline on uploaded CSV data
+    POST /api/v1/llm/run_pipeline
+
+    Body:
+    {
+        "csv_data": [["col1", "col2", ...], ["val1", "val2", ...], ...],
+        "columns": ["数据来源", "评论时间", "评论地点", "评论正文"]（可选，自动检测）
+    }
+    """
+    data = request.get_json()
+
+    if not data or "csv_data" not in data:
+        return jsonify({"success": False, "error": "Missing csv_data parameter"}), 400
+
+    csv_data = data["csv_data"]
+    if not isinstance(csv_data, list) or len(csv_data) < 2:
+        return jsonify({"success": False, "error": "csv_data must be an array with header and at least one row"}), 400
+
+    headers = csv_data[0]
+    rows = csv_data[1:]
+
+    column_map = {
+        "数据来源": "数据来源", "平台": "数据来源", "platform": "数据来源", "source": "数据来源",
+        "评论时间": "评论时间", "时间": "评论时间", "timestamp": "评论时间", "date": "评论时间",
+        "评论地点": "评论地点", "地点": "评论地点", "location": "评论地点",
+        "评论正文": "评论正文", "评论": "评论正文", "text": "评论正文", "review": "评论正文", "content": "评论正文",
+    }
+
+    mapped_headers = []
+    for h in headers:
+        mapped_headers.append(column_map.get(h, h))
+
+    temp_csv_path = None
+    try:
+        import tempfile
+        import os
+        from pathlib import Path
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False, encoding='utf-8-sig') as f:
+            writer = csv.writer(f)
+            writer.writerow(mapped_headers)
+            writer.writerows(rows)
+            temp_csv_path = f.name
+
+        original_cwd = os.getcwd()
+        os.chdir(Path(temp_csv_path).parent)
+
+        import subprocess
+        import sys
+
+        pipeline_path = Path(__file__).parent.parent / "services" / "run_pipeline.py"
+        if not pipeline_path.exists():
+            return jsonify({"success": False, "error": "Pipeline script not found"}), 500
+
+        result = subprocess.run(
+            [sys.executable, str(pipeline_path)],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+
+        os.chdir(original_cwd)
+
+        output_path = Path(temp_csv_path).parent / "维度标签集.md"
+        if output_path.exists():
+            with open(output_path, 'r', encoding='utf-8') as f:
+                report_content = f.read()
+            return jsonify({
+                "success": True,
+                "data": {
+                    "report": report_content,
+                    "stdout": result.stdout,
+                    "stderr": result.stderr if result.returncode != 0 else "",
+                    "returncode": result.returncode,
+                }
+            })
+        elif result.returncode != 0:
+            return jsonify({
+                "success": False,
+                "error": "Pipeline execution failed",
+                "details": result.stderr,
+                "stdout": result.stdout,
+            }), 500
+        else:
+            return jsonify({
+                "success": True,
+                "data": {
+                    "report": None,
+                    "stdout": result.stdout,
+                    "message": "Pipeline completed but output file not found",
+                }
+            })
+
+    except subprocess.TimeoutExpired:
+        return jsonify({"success": False, "error": "Pipeline execution timeout (120s)"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        if temp_csv_path and os.path.exists(temp_csv_path):
+            try:
+                os.unlink(temp_csv_path)
+            except:
+                pass
+
+
+@llm_bp.route("/pipeline_status", methods=["GET"])
+def pipeline_status():
+    """
+    Get available pipeline information
+    GET /api/v1/llm/pipeline_status
+    """
+    pipeline_path = Path(__file__).parent.parent / "services" / "run_pipeline.py"
+    skill_path = Path(__file__).parent.parent / "knowledge_base" / "skills" / "data-cleaning.md"
+    sample_path = Path(__file__).parent.parent / "knowledge_base" / "documents" / "pipeline" / "sample-output.md"
+
+    return jsonify({
+        "success": True,
+        "data": {
+            "pipeline_available": pipeline_path.exists(),
+            "skill_doc_available": skill_path.exists(),
+            "sample_output_available": sample_path.exists(),
+            "description": {
+                "zh": "数据清洗管线：从CSV评论数据生成维度标签集",
+                "en": "Data Cleaning Pipeline: Generate dimension label set from CSV review data"
+            },
+            "input_format": {
+                "csv_data": "2D array with header row",
+                "columns": ["数据来源", "评论时间", "评论地点", "评论正文"]
+            },
+            "output": "维度标签集.md - 包含数据概览、清洗报告、维度提及率、场景×维度交叉分析等"
+        }
+    })

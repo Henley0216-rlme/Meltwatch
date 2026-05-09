@@ -247,32 +247,6 @@ Meltwatch/
 ├── AGENTS.md
 └── CHANGELOG.md
 ```
-
-## 环境变量
-
-在 `backend/.env` 中配置：
-
-```bash
-# 数据库
-DATABASE_URL=sqlite:///reviewpulse.db
-
-# JWT 密钥
-SECRET_KEY=your-secret-key-change-in-production
-
-# 情感分析模型
-EMOTION_MODEL=uer/roberta-base-finetuned-dianping-chinese
-
-# 智谱 AI（LLM 增强）
-ZHIPU_API_KEY=faf1c88decd0412baf19ca089a40e2ff.O2fYoexoVFY7VtuZ
-```
-
-## 获取智谱 API Key
-
-1. 访问 https://open.bigmodel.cn/
-2. 注册并登录
-3. 在控制台创建 API Key
-4. 将 Key 填入环境变量
-
 ## 许可证
 
 MIT

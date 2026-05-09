@@ -49,3 +49,7 @@ logs/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Environment files with secrets
+backend/.env
+docker/.env

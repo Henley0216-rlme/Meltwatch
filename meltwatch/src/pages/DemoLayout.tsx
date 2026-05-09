@@ -1,5 +1,5 @@
 import { Outlet, NavLink, Link } from "react-router-dom";
-import { Home, TrendingUp, Scale, LineChart, Users, FileText, Bell, User, ArrowLeft } from "lucide-react";
+import { Home, TrendingUp, Target, LineChart, Users, FileText, Bell, MessageSquare, User, ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const TEAL = "#2BB7B8";
@@ -9,11 +9,11 @@ const NAV = [
   { to: "/demo",              icon: Home,       en: "Home",              zh: "首页",      end: true },
   { to: "/demo/explore",      icon: TrendingUp, en: "Explore",           zh: "探索" },
   { to: "/demo/monitor",      icon: Bell,       en: "Monitor",           zh: "监测" },
-  { to: "/demo/competitive",  icon: Scale,      en: "Competitive",       zh: "竞品分析" },
-  { to: "/demo/analytics",    icon: LineChart,  en: "Consumer", zh: "消费者洞察" },
-  { to: "/demo/influencer",   icon: Users,      en: "Influencer",        zh: "网红" },
-  { to: "/demo/report",       icon: FileText,   en: "Report",            zh: "报告" },
-  { to: "/demo/alerts",       icon: Bell,       en: "Alerts",            zh: "提醒" },
+  { to: "/demo/analytics",    icon: LineChart,      en: "Consumer",    zh: "消费者洞察" },
+  { to: "/demo/competitive",  icon: Target,         en: "Strategy",    zh: "策略分析" },
+  { to: "/demo/influencer",   icon: Users,          en: "Influencer",  zh: "网红" },
+  { to: "/demo/report",       icon: FileText,       en: "Report",      zh: "报告" },
+  { to: "/demo/alerts",       icon: MessageSquare,  en: "Message",     zh: "消息" },
 ];
 
 export function DemoLayout() {

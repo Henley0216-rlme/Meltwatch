@@ -31,8 +31,8 @@ export function ServiceSections() {
 
   const services = [
     { key: "crisis",      data: t.services.crisis,      visual: <CrisisVisual />,      reverse: false, demoHref: "#" },
-    { key: "competitive", data: t.services.competitive, visual: <CompetitiveVisual />, reverse: true,  demoHref: "#" },
-    { key: "consumer",    data: t.services.consumer,    visual: <ConsumerVisual />,    reverse: false, demoHref: "#" },
+    { key: "consumer",    data: t.services.consumer,    visual: <ConsumerVisual />,    reverse: true,  demoHref: "#" },
+    { key: "competitive", data: t.services.competitive, visual: <CompetitiveVisual />, reverse: false, demoHref: "#" },
     { key: "influencer",  data: t.services.influencer,  visual: <InfluencerVisual />,  reverse: true,  demoHref: "#" },
   ];
 

@@ -13,7 +13,7 @@ export function DemoAccount() {
         { label: { en: "Name", zh: "姓名" },          value: "Sarah Chen" },
         { label: { en: "Email", zh: "邮箱" },         value: "sarah@acme.com" },
         { label: { en: "Role", zh: "角色" },           value: zh ? "管理员" : "Admin" },
-        { label: { en: "Organization", zh: "组织" },   value: "Acme Corp" },
+        { label: { en: "Organization", zh: "组织" },   value: "探路者" },
       ],
     },
     {

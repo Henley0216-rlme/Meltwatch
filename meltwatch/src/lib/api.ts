@@ -800,3 +800,127 @@ export async function llmChat(
   });
   return response.json();
 }
+
+/**
+ * Chat with knowledge base and skill context
+ */
+export async function llmChatWithContext(
+  messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
+  options?: {
+    injectKnowledge?: boolean;
+    skillId?: string;
+    language?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }
+): Promise<{
+  success: boolean;
+  data?: {
+    content: string;
+    skill?: {
+      id: string;
+      name: string;
+      name_zh: string;
+    };
+    knowledge_used?: Array<{ id: string; title: string }>;
+    usage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+  error?: string;
+}> {
+  const response = await fetch(`${API_BASE}/llm/chat_with_context`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages,
+      inject_knowledge: options?.injectKnowledge ?? true,
+      skill_id: options?.skillId,
+      language: options?.language ?? "zh",
+      temperature: options?.temperature,
+      max_tokens: options?.maxTokens,
+    }),
+  });
+  return response.json();
+}
+
+/**
+ * Store a Q&A learning pair
+ */
+export async function storeLearning(
+  question: string,
+  answer: string,
+  options?: {
+    questionZh?: string;
+    answerZh?: string;
+    skillId?: string;
+    quality?: number;
+  }
+): Promise<{
+  success: boolean;
+  data?: {
+    qa_id: string;
+    insights_extracted: number;
+  };
+  error?: string;
+}> {
+  const response = await fetch(`${API_BASE}/learning/store`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      question,
+      answer,
+      question_zh: options?.questionZh,
+      answer_zh: options?.answerZh,
+      skill_id: options?.skillId,
+      quality: options?.quality ?? 5,
+    }),
+  });
+  return response.json();
+}
+
+/**
+ * Search knowledge base
+ */
+export async function searchKnowledgeBase(
+  query: string,
+  options?: {
+    categories?: string[];
+    limit?: number;
+  }
+): Promise<{
+  success: boolean;
+  data?: {
+    documents: Array<{
+      id: string;
+      title: string;
+      title_zh: string;
+      category: string;
+      relevance_score: number;
+      excerpt: string;
+      source: string;
+      keywords: string[];
+    }>;
+    total: number;
+  };
+  error?: string;
+}> {
+  const response = await fetch(`${API_BASE}/kb/search`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query,
+      categories: options?.categories,
+      limit: options?.limit ?? 5,
+    }),
+  });
+  return response.json();
+}

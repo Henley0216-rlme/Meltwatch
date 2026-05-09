@@ -1,0 +1,12 @@
+{
+  "id": "customer-insights-001",
+  "title": "Customer Insights Methodology",
+  "title_zh": "客户洞察方法论",
+  "category": "business",
+  "tags": ["customer", "insights", "behavior", "客户", "洞察", "行为"],
+  "keywords": ["customer insights", "user behavior", "pain points", "客户洞察", "用户行为", "痛点"],
+  "content": "Understanding customer insights involves: 1) Collecting feedback through surveys, interviews, and reviews; 2) Analyzing purchase behavior and patterns; 3) Identifying customer pain points and satisfaction drivers; 4) Creating customer personas; 5) Tracking customer journey touchpoints. Key techniques: sentiment analysis of reviews, cohort analysis, and net promoter score (NPS) measurement.",
+  "content_zh": "理解客户洞察包括：1) 通过调查、访谈和评论收集反馈；2) 分析购买行为和模式；3) 识别客户痛点和满意度驱动因素；4) 创建客户画像；5) 跟踪客户旅程触点。关键技术：评论情感分析、群组分析和净推荐值(NPS)测量。",
+  "source": "Customer Experience Guide",
+  "created_at": "2024-01-01T00:00:00Z"
+}

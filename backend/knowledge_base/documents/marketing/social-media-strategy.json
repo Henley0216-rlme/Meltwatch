@@ -1,0 +1,12 @@
+{
+  "id": "social-media-001",
+  "title": "Social Media Marketing Strategy",
+  "title_zh": "社交媒体营销策略",
+  "category": "marketing",
+  "tags": ["social media", "marketing", "engagement", "社交媒体", "营销", "互动"],
+  "keywords": ["social media marketing", "content strategy", "engagement rate", "社交媒体营销", "内容策略", "互动率"],
+  "content": "A successful social media strategy requires: 1) Platform selection based on target audience demographics; 2) Content calendar planning for consistent posting; 3) Engagement tactics to build community; 4) Analytics tracking to measure performance. Key metrics include engagement rate, follower growth, and content reach. Best practices: respond to comments within 24 hours, use hashtags strategically, and maintain brand voice consistency.",
+  "content_zh": "成功的社交媒体策略需要：1) 根据目标受众特征选择平台；2) 规划内容日历以保持一致发布；3) 互动策略建立社区；4) 分析跟踪以衡量绩效。关键指标包括互动率、粉丝增长和内容触达。最佳实践：24小时内回复评论、战略性地使用标签、保持品牌声音一致性。",
+  "source": "Digital Marketing Guide",
+  "created_at": "2024-01-01T00:00:00Z"
+}

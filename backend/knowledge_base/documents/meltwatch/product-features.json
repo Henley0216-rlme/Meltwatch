@@ -1,0 +1,12 @@
+{
+  "id": "meltwatch-features-001",
+  "title": "Meltwatch Product Features",
+  "title_zh": "Meltwatch 产品功能",
+  "category": "meltwatch",
+  "tags": ["meltwatch", "features", "sentiment", "舆情", "情感分析"],
+  "keywords": ["sentiment analysis", "brand monitoring", "review analysis", "情感分析", "品牌监控", "评论分析"],
+  "content": "Meltwatch is a real-time brand sentiment monitoring platform with features including: 1) Multi-platform review aggregation; 2) AI-powered sentiment analysis (positive/negative/neutral); 3) Keyword extraction using TF-IDF; 4) Pain point detection across 6 categories; 5) Trend tracking and visualization; 6) Report generation and export. Supported platforms include Generic web, Dianping, and JD.com.",
+  "content_zh": "Meltwatch 是一个实时品牌舆情监控平台，功能包括：1) 多平台评论聚合；2) AI驱动的情感分析（正面/负面/中性）；3) 使用TF-IDF的关键词提取；4) 6类痛点检测；5) 趋势跟踪和可视化；6) 报告生成和导出。支持平台包括通用网页、大众点评和京东。",
+  "source": "Meltwatch Documentation",
+  "created_at": "2024-01-01T00:00:00Z"
+}

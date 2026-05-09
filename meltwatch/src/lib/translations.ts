@@ -42,9 +42,9 @@ export const translations = {
           "Real-time alerts surface anomalies the moment they emerge on social — long before the news cycle picks them up.",
       },
       competitive: {
-        tag: "Competitive Intelligence",
+        tag: "Strategic Analysis",
         body:
-          "Track share of voice, sentiment, and engagement against a competitor set you define — not a generic industry average.",
+          "Translate market signals and competitive dynamics into strategic frameworks that help leadership teams prioritize initiatives and anticipate market shifts.",
       },
       consumer: {
         tag: "Consumer Insights",
@@ -71,14 +71,14 @@ export const translations = {
         ],
       },
       competitive: {
-        headline: "Competitive Intelligence. Know your real rivals.",
+        headline: "Business Strategy. Intelligence-driven decisions.",
         body:
-          "A generic 'industry average' tells you nothing. Meltwatch lets you define your competitive set down to the SKU, region, and audience segment, then continuously benchmarks share of voice, sentiment, engagement rate, and topical ownership — with weekly delta reports that flag what's changing.",
+          "Understanding where your business stands today is only the first step. Meltwatch translates market signals, competitive dynamics, and consumer sentiment into strategic frameworks that help leadership teams allocate resources, prioritize initiatives, and anticipate market shifts before they happen.",
         bullets: [
-          "Side-by-side share-of-voice tracking with weekly deltas",
-          "Sentiment-adjusted engagement scoring (engagement isn't always good)",
-          "Topical ownership maps: which conversations does each rival actually win?",
-          "Win/loss narratives generated automatically from the underlying data",
+          "Market opportunity mapping: identify white spaces your competitors haven't claimed",
+          "Strategic narrative alignment: ensure your messaging matches the conversations that matter",
+          "Scenario modeling based on real-time signal changes across channels and regions",
+          "Executive briefings that translate data into actionable strategic priorities",
         ],
       },
       consumer: {
@@ -143,8 +143,8 @@ export const translations = {
       products: "Products",
       productItems: [
         "Crisis Management",
-        "Competitive Intelligence",
         "Consumer Insights",
+        "Strategic Advisory",
         "Influencer Marketing",
       ],
       company: "Company",
@@ -199,9 +199,9 @@ export const translations = {
           "实时告警在异常出现的瞬间就会浮现——远早于新闻周期捕捉到它。",
       },
       competitive: {
-        tag: "竞品情报",
+        tag: "商业战略分析",
         body:
-          "针对你自定义的竞争对手范围,跟踪声量份额、情感倾向与互动表现。",
+          "将市场信号与竞争动态转化为战略框架，帮助领导层确定优先项并提前预判市场变化。",
       },
       consumer: {
         tag: "消费者洞察",
@@ -228,14 +228,14 @@ export const translations = {
         ],
       },
       competitive: {
-        headline: "竞品情报。了解你真正的对手。",
+        headline: "商业战略分析。数据驱动的战略决策。",
         body:
-          "“行业均值”几乎不能告诉你任何事。Meltwatch 让你按 SKU、地区、受众细分定义竞品集合,持续追踪声量份额、情感、互动率与话题占有率——并附每周变化报告,告诉你什么在改变。",
+          "了解企业当下所处的市场位置，只是第一步。Meltwatch 将市场信号、竞争动态与消费者情绪转化为战略框架，帮助领导层合理分配资源、确定优先项，并在市场变化发生前预判趋势。",
         bullets: [
-          "并排展示的声量份额追踪,附每周变化",
-          "情感加权的互动评分(并非所有互动都是好事)",
-          "话题占有率地图:每位对手到底赢下了哪些对话?",
-          "胜负叙事自动生成,基于底层数据",
+          "市场机会图谱：识别竞争对手尚未占据的白地",
+          "战略叙事校准：确保你的信息传递契合真正重要的对话",
+          "基于跨渠道、跨地域实时信号变化的情景建模",
+          "将数据转化为可执行战略优先项的高管简报",
         ],
       },
       consumer: {
@@ -298,7 +298,7 @@ export const translations = {
     footer: {
       tagline: "为你的业务量身定制的智能洞察。",
       products: "产品",
-      productItems: ["危机管理", "竞品情报", "消费者洞察", "网红营销"],
+      productItems: ["危机管理", "消费者洞察", "策略建议", "网红营销"],
       company: "公司",
       companyItems: ["关于", "客户", "招聘", "新闻", "联系"],
       resources: "资源",

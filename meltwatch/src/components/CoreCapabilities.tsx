@@ -8,8 +8,8 @@ export function CoreCapabilities() {
 
   const cards = [
     { key: "crisis",      data: t.capabilities.crisis      },
-    { key: "competitive", data: t.capabilities.competitive  },
     { key: "consumer",    data: t.capabilities.consumer     },
+    { key: "competitive", data: t.capabilities.competitive  },
     { key: "influencer",  data: t.capabilities.influencer   },
   ] as const;
 

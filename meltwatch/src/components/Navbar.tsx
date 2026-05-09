@@ -96,8 +96,8 @@ export function Navbar() {
               href: "#service-crisis",
             },
             {
-              label: zh ? "竞品情报" : "Competitive Intelligence",
-              description: zh ? "跨渠道追踪竞争对手动态与基准" : "Track rivals across channels and markets",
+              label: zh ? "商业战略分析" : "Business Strategy Analysis",
+              description: zh ? "将市场信号转化为可执行的战略决策" : "Turn market signals into actionable strategic decisions",
               href: "#service-competitive",
               dividerAfter: true,
             },
@@ -132,8 +132,8 @@ export function Navbar() {
           heading: zh ? "产品" : "PRODUCTS",
           items: [
             { label: zh ? "危机管理" : "Crisis Management", href: "#service-crisis" },
-            { label: zh ? "竞品情报" : "Competitive Intelligence", href: "#service-competitive" },
             { label: zh ? "消费者洞察" : "Consumer Insights", href: "#service-consumer" },
+            { label: zh ? "策略建议" : "Strategic Advisory", href: "#service-competitive" },
             { label: zh ? "网红营销" : "Influencer Marketing", href: "#service-influencer" },
           ],
         },
@@ -141,8 +141,8 @@ export function Navbar() {
           heading: zh ? "按使用场景" : "BY USE CASE",
           items: [
             { label: zh ? "危机管理与实时告警" : "Crisis Management & Real-Time Alerts", href: "#service-crisis" },
-            { label: zh ? "竞品情报与基准对比" : "Competitive Intelligence & Benchmarking", href: "#service-competitive" },
             { label: zh ? "消费者洞察与趋势检测" : "Consumer Insights & Trend Detection", href: "#service-consumer" },
+            { label: zh ? "商业战略分析与市场研判" : "Business Strategy & Market Intelligence", href: "#service-competitive" },
             { label: zh ? "网红管理与营销 ROI" : "Influencer Management & Campaign ROI", href: "#service-influencer" },
           ],
         },

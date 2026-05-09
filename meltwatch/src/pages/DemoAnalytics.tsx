@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ChevronDown, Search, Download, ThumbsUp, ThumbsDown, RefreshCw, Copy, ArrowUpDown, Filter, Tag, Check, Info, ExternalLink, type LucideIcon } from "lucide-react";
+import { ChevronDown, Search, Download, ThumbsUp, ThumbsDown, RefreshCw, Copy, ArrowUpDown, Filter, Tag, Check, Info, ExternalLink, Upload, type LucideIcon } from "lucide-react";
 
 const TEAL = "#2BB7B8";
 
@@ -238,6 +238,8 @@ export function DemoAnalytics() {
 
   const [activeTab, setActiveTab]   = useState("volume");
   const [openFilter, setOpenFilter] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [sources,    setSources]    = useState<Set<string>>(new Set(["x","facebook","xiaohongshu","douyin","weixin","weibo"]));
   const [langs,      setLangs]      = useState<Set<string>>(new Set(["zh","en"]));
@@ -303,6 +305,25 @@ export function DemoAnalytics() {
                 <span className="text-xs text-gray-700">{src.label}</span>
               </CheckRow>
             ))}
+          </div>
+          <div className="border-t border-gray-100 p-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.xlsx,.json"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) setUploadedFile(file.name);
+              }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 border border-dashed border-gray-200 hover:border-gray-300 transition-colors"
+            >
+              <Upload size={12} className="flex-shrink-0" style={{ color: TEAL }} />
+              <span className="truncate">{uploadedFile ?? (zh ? "上传自定义数据源" : "Upload custom source")}</span>
+            </button>
           </div>
         </FilterDropdown>
 

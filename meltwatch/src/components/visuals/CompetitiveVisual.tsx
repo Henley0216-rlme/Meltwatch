@@ -1,74 +1,81 @@
 import { motion } from "framer-motion";
 
-const COMPETITORS = [
-  { name: "Your brand", share: 38.2, delta: "+2.4", you: true },
-  { name: "Halcyon Co.", share: 28.7, delta: "−1.1", you: false },
-  { name: "Northwind", share: 18.4, delta: "+0.6", you: false },
-  { name: "Meridian", share: 9.5, delta: "−0.8", you: false },
-  { name: "Other", share: 5.2, delta: "−1.1", you: false },
+const INITIATIVES = [
+  { name: "Brand Positioning", impact: "HIGH", score: 91, delta: "+12", accent: true },
+  { name: "Market Expansion", impact: "HIGH", score: 78, delta: "+6", accent: false },
+  { name: "Product Differentiation", impact: "MED", score: 63, delta: "+3", accent: false },
+  { name: "Competitive Response", impact: "MED", score: 47, delta: "−2", accent: false },
+];
+
+const SIGNALS = [
+  { label: "Category momentum", value: "+18%", sub: "month-over-month", positive: true },
+  { label: "White spaces identified", value: "3", sub: "new segments", positive: true },
+  { label: "Strategic window", value: "6–8 wk", sub: "recommended action", positive: null },
 ];
 
 export function CompetitiveVisual() {
-  const max = Math.max(...COMPETITORS.map((c) => c.share));
+  const max = Math.max(...INITIATIVES.map((c) => c.score));
 
   return (
     <div className="relative bg-ink text-cream rounded-2xl p-6 lg:p-8 overflow-hidden grain">
       <div className="flex items-center justify-between mb-8">
         <span className="font-mono text-[10px] uppercase tracking-widest text-cream/50">
-          Share of voice · last 30 days
+          Strategic Brief · Q2 2026
         </span>
-        <div className="flex items-center gap-2 text-[10px] font-mono text-cream/50">
-          <span className="h-1.5 w-1.5 rounded-full bg-molten" />
-          your brand
+        <div className="flex items-center gap-1.5 text-[10px] font-mono text-molten">
+          <span className="h-1.5 w-1.5 rounded-full bg-molten animate-pulse" />
+          Live signals
         </div>
       </div>
 
-      <div className="space-y-4">
-        {COMPETITORS.map((c, i) => (
-          <div key={c.name} className="flex items-center gap-4">
-            <div className="w-28 shrink-0">
-              <div
-                className={`text-sm ${
-                  c.you ? "text-cream font-medium" : "text-cream/70"
-                } truncate`}
-              >
-                {c.name}
-              </div>
+      {/* Priority matrix */}
+      <div className="mb-2">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-cream/40">
+          Initiative Priority Matrix
+        </span>
+      </div>
+      <div className="space-y-3.5 mb-8">
+        {INITIATIVES.map((item, i) => (
+          <div key={item.name} className="flex items-center gap-4">
+            <div className="w-36 shrink-0 flex flex-col gap-0.5">
+              <span className={`text-xs truncate ${item.accent ? "text-cream font-medium" : "text-cream/70"}`}>
+                {item.name}
+              </span>
+              <span className="font-mono text-[9px] text-cream/35 uppercase tracking-wider">
+                Impact: {item.impact}
+              </span>
             </div>
             <div className="flex-1 relative h-7 bg-cream/[0.06] rounded">
               <motion.div
                 initial={{ width: 0 }}
-                whileInView={{ width: `${(c.share / max) * 100}%` }}
+                whileInView={{ width: `${(item.score / max) * 100}%` }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 1.2, delay: i * 0.12 }}
-                className={`absolute inset-y-0 left-0 rounded ${
-                  c.you ? "bg-molten" : "bg-cream/25"
-                } flex items-center justify-end pr-3`}
+                className={`absolute inset-y-0 left-0 rounded flex items-center justify-end pr-3 ${
+                  item.accent ? "bg-molten" : "bg-cream/20"
+                }`}
               >
-                <span className="font-mono text-xs">{c.share}%</span>
+                <span className="font-mono text-xs">{item.score}</span>
               </motion.div>
             </div>
             <div
-              className={`w-12 shrink-0 text-right font-mono text-xs ${
-                c.delta.startsWith("+") ? "text-molten" : "text-cream/50"
+              className={`w-10 shrink-0 text-right font-mono text-xs ${
+                item.delta.startsWith("+") ? "text-molten" : "text-cream/40"
               }`}
             >
-              {c.delta}
+              {item.delta}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-8 pt-6 border-t border-cream/10">
-        <div className="font-mono text-[10px] uppercase tracking-widest text-cream/50 mb-4">
-          Sentiment-adjusted engagement
+      {/* Market signals */}
+      <div className="pt-6 border-t border-cream/10">
+        <div className="font-mono text-[9px] uppercase tracking-widest text-cream/40 mb-4">
+          Market Opportunity Signals
         </div>
         <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Positive", value: "62%", color: "bg-moss-400" },
-            { label: "Neutral", value: "29%", color: "bg-cream/30" },
-            { label: "Negative", value: "9%", color: "bg-molten" },
-          ].map((s, i) => (
+          {SIGNALS.map((s, i) => (
             <motion.div
               key={s.label}
               initial={{ opacity: 0, y: 10 }}
@@ -77,13 +84,18 @@ export function CompetitiveVisual() {
               transition={{ delay: 0.6 + i * 0.1 }}
               className="bg-cream/[0.04] rounded-lg p-3"
             >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className={`h-1.5 w-1.5 rounded-full ${s.color}`} />
-                <span className="font-mono text-[9px] uppercase tracking-wider text-cream/50">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    s.positive === true ? "bg-molten" : s.positive === false ? "bg-red-400" : "bg-cream/30"
+                  }`}
+                />
+                <span className="font-mono text-[8px] uppercase tracking-wider text-cream/40 leading-tight">
                   {s.label}
                 </span>
               </div>
-              <div className="font-display text-2xl font-medium">{s.value}</div>
+              <div className="font-display text-xl font-medium leading-none mb-1">{s.value}</div>
+              <div className="font-mono text-[8px] text-cream/30">{s.sub}</div>
             </motion.div>
           ))}
         </div>

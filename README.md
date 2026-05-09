@@ -72,12 +72,14 @@ docker compose logs -f backend
 
 ### 服务访问
 
-| 服务 | 地址 |
+| 页面 | 地址 |
 |------|------|
-| 前端首页 | http://localhost:8080 |
+| 首页 | http://localhost:8080 |
 | Demo 页面 | http://localhost:8080/demo/* |
-| 后端 API | http://localhost:5001/api/v1 |
-| 健康检查 | http://localhost:5001/api/v1/health |
+| AI 探索 | http://localhost:8080/demo/explore |
+| 舆情监测 | http://localhost:8080/demo/monitor |
+| 品牌分析 | http://localhost:8080/demo/analytics |
+| 网红分析 | http://localhost:8080/demo/influencer |
 
 ## AI 分析引擎
 

@@ -1,252 +1,250 @@
 # Meltwatch
 
-实时舆情监控与电商评论情感分析平台。基于本地 AI 模型 + 智谱大模型双引擎，为品牌提供快速、深度、智能的消费者洞察。
+实时舆情监控与 AI 智能分析平台。基于本地模型 + 智谱大模型双引擎，为品牌提供消费者洞察、竞品分析和营销决策支持。
 
-## 核心特性
+## 核心功能
 
-| 功能 | 技术 | 说明 |
-|------|------|------|
-| **情感分析** | RoBERTa + 智谱 GLM-4 | 二分类/三分类 + 深度上下文理解 |
-| **关键词提取** | jieba TF-IDF | 高频词提取与情感分布 |
-| **痛点检测** | 规则匹配 | 6 大类问题自动识别 |
-| **报告生成** | HTML 模板 | 一键导出可视化报告 |
-| **网页爬取** | 多平台支持 | 通用/大众点评/京东 |
-| **GPU/CPU 自适应** | PyTorch | 自动选择最优推理设备 |
+| 模块 | 说明 |
+|------|------|
+| **AI 探索** | 智能问答助手，融合知识库 + Skill 匹配引擎，支持用户自定义 API Key |
+| **舆情监测** | 多平台评论数据采集，实时情感追踪与预警 |
+| **品牌分析** | 品牌声量、情感趋势、用户画像分析 |
+| **竞品对比** | 竞争对手数据对比与差异化洞察 |
+| **网红分析** | 创作者真实性评分与影响力评估 |
+| **数据清洗管线** | CSV 评论自动化清洗，生成维度标签集报告 |
+| **报告生成** | 一键导出可视化分析报告 |
+
+## 技术架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      前端 (React 18)                        │
+│   Vite + TypeScript + Tailwind CSS + React Router          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      后端 (Flask 3.0)                       │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │ 本地模型     │  │ 智谱 GLM-4   │  │  Skill 引擎  │    │
+│  │ (快速分类)   │  │ (深度理解)   │  │ (模式匹配)   │    │
+│  └──────────────┘  └──────────────┘  └──────────────┘    │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │ 知识库       │  │ 学习引擎     │  │ 数据清洗    │    │
+│  │ (检索增强)   │  │ (Q&A 积累)   │  │ (管线执行)  │    │
+│  └──────────────┘  └──────────────┘  └──────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## 技术栈
 
 | 组件 | 技术 |
 |------|------|
 | 前端 | React 18 + TypeScript + Vite + Tailwind CSS |
-| 后端 | Flask 3.0 + Python |
+| 后端 | Flask 3.0 + Python 3.10+ |
 | 本地模型 | HuggingFace `uer/roberta-base-finetuned-dianping-chinese` |
 | 大模型 | 智谱 GLM-4-Flash |
-| 数据库 | SQLite (默认) / PostgreSQL |
-| 部署 | Docker + Nginx |
+| 知识库 | 关键词匹配检索 + JSON 文档 |
+| 数据库 | SQLite (默认) |
+| 认证 | JWT (HS256, 7天过期) |
 
 ## 快速开始
 
-### 前置要求
+### 环境要求
 
-- Docker 和 Docker Compose
-- 4GB+ RAM（模型推理）
+- Python 3.10+
+- Node.js 18+
+- 智谱 API Key (可选，支持用户自定义)
 
-### Docker 部署（推荐）
-
-```bash
-# 克隆项目
-cd docker
-
-# 启动服务
-docker compose up -d
-
-# 查看日志
-docker compose logs -f backend
-```
-
-### 本地开发
+### 后端启动
 
 ```bash
-# 后端
 cd backend
 pip install -r requirements.txt
-cp .env.example .env
+cp .env.example .env   # 编辑填入 ZHIPU_API_KEY
 python app.py
+```
 
-# 前端
+### 前端启动
+
+```bash
 cd meltwatch
 npm install
 npm run dev
 ```
 
-### 首次运行
+### 服务地址
 
-首次启动会自动下载模型（约 400MB）：
-
-```bash
-docker compose logs -f backend
-# 看到 "✅ Model loaded successfully" 即表示就绪
-```
-
-### 服务访问
-
-| 页面 | 地址 |
+| 服务 | 地址 |
 |------|------|
-| 首页 | http://localhost:8080 |
-| Demo 页面 | http://localhost:8080/demo/* |
-| AI 探索 | http://localhost:8080/demo/explore |
-| 舆情监测 | http://localhost:8080/demo/monitor |
-| 品牌分析 | http://localhost:8080/demo/analytics |
-| 网红分析 | http://localhost:8080/demo/influencer |
-
-## AI 分析引擎
-
-### 双引擎架构
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        前端 (React)                          │
-│  ┌─────────────┐  ┌──────────────┐  ┌───────────────────┐ │
-│  │ 本地模型    │  │  智谱 GLM    │  │   报告生成        │ │
-│  │  (快速)     │  │  (深度)      │  │                  │ │
-│  └──────┬──────┘  └──────┬───────┘  └────────┬─────────┘ │
-└─────────┼────────────────┼─────────────────────┼────────────┘
-          │                │                      │
-          ▼                ▼                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       后端 (Flask)                          │
-│  ┌────────────────┐  ┌──────────────────────────────────┐  │
-│  │ 本地模型      │  │      智谱 GLM-4-Flash             │  │
-│  │ • 快速分类    │  │  • 上下文感知分析                 │  │
-│  │ • 实时响应    │  │  • 批量洞察生成                  │  │
-│  │ • 零成本      │  │  • 回复建议                       │  │
-│  └────────────────┘  └──────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 场景选择指南
-
-| 场景 | 推荐 | 原因 |
-|------|------|------|
-| 高并发、快速筛选 | 本地模型 | 无 API 成本，低延迟 |
-| 复杂上下文理解 | 本地 + 智谱 | 深度语义分析 |
-| 批量分析 + 报告 | 智谱 batch | 汇总洞察生成 |
-| 负面评论处理 | 智谱 generate_response | 自然语言建议 |
-
-## API 文档
-
-### 基础情感分析
-
-```bash
-# 单条分析
-POST /api/v1/analyze
-{"text": "产品质量很好，物流也很快！"}
-
-# 批量分析（最多 20 条）
-POST /api/v1/batch_analyze
-{"texts": ["文本1", "文本2"]}
-```
-
-### 关键词与痛点
-
-```bash
-# 关键词提取
-POST /api/v1/keywords
-{"texts": ["文本1", "文本2"], "top_n": 20}
-
-# 痛点检测
-POST /api/v1/pain_points
-{"texts": ["文本1", "文本2"]}
-```
-
-### LLM 增强（需配置 ZHIPU_API_KEY）
-
-```bash
-# 检查 LLM 状态
-GET /api/v1/llm/status
-
-# 深度情感分析（带上下文）
-POST /api/v1/llm/analyze
-{"text": "夜景模式噪点太多", "product_info": "某品牌手机"}
-
-# 批量分析 + 洞察
-POST /api/v1/llm/batch_analyze
-{"texts": ["好评", "物流太慢", "质量不错"], "batch_size": 10}
-
-# 生成回复建议
-POST /api/v1/llm/generate_response
-{"negative_review": "质量太差了", "tone": "professional"}
-
-# 评论摘要
-POST /api/v1/llm/summarize_reviews
-{"reviews": ["评论1", "评论2"], "product_name": "产品名称"}
-```
-
-### 报告管理
-
-```bash
-POST /api/v1/reports/generate  # 生成报告
-GET  /api/v1/reports           # 报告列表
-GET  /api/v1/reports/<id>      # 报告详情
-GET  /api/v1/reports/<id>/download  # 下载 HTML
-DELETE /api/v1/reports/<id>    # 删除报告
-```
-
-### 用户认证
-
-```bash
-POST /api/v1/auth/register  # 注册
-POST /api/v1/auth/login      # 登录
-GET  /api/v1/auth/me        # 当前用户
-PUT  /api/v1/auth/me        # 更新资料
-```
-
-### 网页爬取
-
-```bash
-POST /api/v1/crawl/scrape
-{"urls": ["https://example.com"], "platform": "Generic"}
-
-GET /api/v1/crawl/platforms  # 支持的平台
-```
+| 前端 | http://localhost:5173 |
+| 后端 API | http://localhost:5001 |
+| 演示首页 | http://localhost:5173/demo |
 
 ## Demo 页面
 
 | 页面 | 路由 | 说明 |
 |------|------|------|
-| 首页 | `/demo` | 数据源选择、最近活动 |
-| 探索 | `/demo/explore` | AI 搜索助手 |
-| 监测 | `/demo/monitor` | 实时舆情仪表盘 |
-| 分析 | `/demo/analytics` | 品牌分析报告 |
-| 网红 | `/demo/influencer` | 创作者真实性评分 |
+| 首页 | `/demo` | 数据源管理、最近活动 |
+| AI 探索 | `/demo/explore` | 智能问答助手 |
+| 舆情监测 | `/demo/monitor` | 实时舆情仪表盘 |
+| 品牌分析 | `/demo/analytics` | 品牌深度分析报告 |
+| 竞品对比 | `/demo/competitive` | 竞争对手数据对比 |
+| 网红分析 | `/demo/influencer` | 创作者影响力评估 |
+| 数据报告 | `/demo/report` | 报告管理与导出 |
+| 预警中心 | `/demo/alerts` | 舆情预警配置 |
+| 账户设置 | `/demo/account` | 用户认证与 API Key |
+
+## AI 双引擎
+
+### 本地模型 (RoBERTa)
+
+- 快速情感分类 (二分类/三分类)
+- 零 API 成本
+- 低延迟响应
+
+### 智谱 GLM-4
+
+- 深度上下文理解
+- 批量分析 + 洞察生成
+- 自动回复建议
+- 评论摘要报告
+
+### 用户自定义 API Key
+
+用户可在账户设置中填入自己的智谱 API Key，优先使用用户配额，同时享受平台提供的 Skill 和知识库能力。
+
+## Skill 系统
+
+| Skill | 说明 |
+|-------|------|
+| 品牌分析 | 品牌情感和认知分析 |
+| 竞品研究 | 竞争对手研究和对比 |
+| 趋势发现 | 新兴趋势和话题识别 |
+| 情感分析 | 评论情感倾向分析 |
+| 营销建议 | 营销策略建议 |
+| 客户洞察 | 用户画像和行为分析 |
+| 数据清洗 | CSV 评论数据清洗与维度标签生成 |
+
+## API 文档
+
+### 认证
+
+```bash
+POST /api/v1/auth/register   # 注册
+POST /api/v1/auth/login      # 登录
+GET  /api/v1/auth/me        # 当前用户
+PUT  /api/v1/auth/me        # 更新资料
+```
+
+### 情感分析
+
+```bash
+POST /api/v1/analyze          # 单条分析
+POST /api/v1/batch_analyze    # 批量分析 (最多20条)
+```
+
+### LLM 增强
+
+```bash
+GET  /api/v1/llm/status                    # LLM 状态
+POST /api/v1/llm/analyze                   # 深度情感分析
+POST /api/v1/llm/batch_analyze             # 批量分析+洞察
+POST /api/v1/llm/chat                      # 通用对话
+POST /api/v1/llm/chat_with_context         # 知识库+Skill上下文对话
+POST /api/v1/llm/generate_response         # 负面评论回复建议
+POST /api/v1/llm/summarize_reviews          # 评论摘要报告
+POST /api/v1/llm/run_pipeline               # 执行数据清洗管线
+GET  /api/v1/llm/pipeline_status           # 管线状态
+```
+
+### 知识库
+
+```bash
+GET /api/v1/knowledge/search?q=关键词       # 知识检索
+GET /api/v1/knowledge/skills               # 技能列表
+```
 
 ## 项目结构
 
 ```
 Meltwatch/
-├── meltwatch/                # React 前端
-│   ├── src/
-│   │   ├── components/       # UI 组件
-│   │   ├── contexts/         # React Context
-│   │   ├── lib/             # API 客户端
-│   │   ├── pages/           # 页面组件
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── public/               # 静态资源 (PNG 图标)
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── tailwind.config.js
-├── backend/                  # Flask 后端
-│   ├── app.py               # 主应用入口
-│   ├── config.py            # 配置
-│   ├── db.py                # 数据库
+├── meltwatch/                      # React 前端
+│   └── src/
+│       ├── components/             # UI 组件 (Navbar, Layout 等)
+│       ├── contexts/               # React Context (LanguageContext)
+│       ├── lib/                    # API 客户端 (api.ts)
+│       ├── pages/                  # 页面组件
+│       │   ├── DemoHome.tsx        # 首页
+│       │   ├── DemoExplore.tsx      # AI 探索
+│       │   ├── DemoMonitor.tsx      # 舆情监测
+│       │   ├── DemoAnalytics.tsx    # 品牌分析
+│       │   ├── DemoCompetitive.tsx  # 竞品对比
+│       │   ├── DemoInfluencer.tsx   # 网红分析
+│       │   ├── DemoReport.tsx       # 报告管理
+│       │   ├── DemoAlerts.tsx       # 预警中心
+│       │   └── DemoAccount.tsx       # 账户设置
+│       ├── App.tsx
+│       └── main.tsx
+├── backend/                        # Flask 后端
+│   ├── app.py                      # 应用入口
+│   ├── auth.py                     # 用户认证
+│   ├── config.py                   # 配置
+│   ├── db.py                       # 数据库
 │   ├── requirements.txt
-│   ├── Dockerfile
-│   ├── .env                 # 环境变量
-│   ├── models/              # 数据模型
-│   │   ├── database.py
-│   │   └── emotion.py
-│   ├── routes/              # API 路由
-│   │   ├── analysis.py      # 情感分析
-│   │   ├── auth.py          # 用户认证
-│   │   ├── crawl.py         # 网页爬取
-│   │   ├── llm.py           # LLM 增强
-│   │   └── user.py          # 用户管理
-│   ├── services/            # 外部服务
-│   │   └── zhipu_client.py  # 智谱客户端
-│   └── utils/                # 工具函数
-│       ├── auth.py           # JWT 认证
-│       └── crawler.py        # 爬虫框架
-├── docker/                    # Docker 部署配置
-│   ├── docker-compose.yml
-│   ├── nginx.conf
-│   ├── .env
-│   └── start.sh
-├── docker-compose.yml        # 根目录 Docker Compose
-├── README.md
-├── AGENTS.md
-└── CHANGELOG.md
+│   ├── routes/
+│   │   └── llm.py                  # LLM + 管线路由
+│   ├── services/
+│   │   ├── zhipu_client.py         # 智谱客户端
+│   │   ├── knowledge_base.py       # 知识库服务
+│   │   ├── skill_engine.py         # Skill 匹配引擎
+│   │   ├── learning_engine.py      # Q&A 学习引擎
+│   │   └── run_pipeline.py         # 数据清洗管线
+│   ├── utils/
+│   │   ├── auth.py                 # JWT 工具
+│   │   └── crawler.py              # 爬虫框架
+│   └── knowledge_base/              # 知识库文档
+│       ├── skills/                  # Skill 定义
+│       │   ├── data-cleaning.json
+│       │   └── data-cleaning.md
+│       ├── documents/               # 知识文档
+│       │   ├── marketing/
+│       │   ├── business/
+│       │   ├── meltwatch/
+│       │   └── pipeline/
+│       └── learned/                 # 学习成果
+│           ├── qa_pairs.json
+│           └── insights.json
+└── docker/                          # Docker 部署配置
 ```
-## 许可证
 
-MIT
+## 环境变量
+
+```bash
+# backend/.env
+FLASK_ENV=development
+FLASK_DEBUG=1
+SECRET_KEY=your-secret-key
+ZHIPU_API_KEY=your-api-key      # 可选，系统级 API Key
+```
+
+## 数据清洗管线
+
+将评论 CSV 数据转化为结构化维度标签集：
+
+**输入**：CSV 文件（含 `数据来源`、`评论时间`、`评论地点`、`评论正文` 字段）
+
+**输出**：`维度标签集.md`，包含：
+1. 数据概览（平台分布、地域分布）
+2. 清洗报告（去重、去噪统计）
+3. 维度提及率总览
+4. 场景 × 维度交叉分析
+5. 人群 × 场景交叉洞察
+6. 典型评论样本
+7. 数据完整度说明
+
+---
+
+MIT License

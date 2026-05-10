@@ -781,6 +781,7 @@ export async function llmAnalyze(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       text,
@@ -802,6 +803,7 @@ export async function llmBatchAnalyze(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       texts,
@@ -822,6 +824,7 @@ export async function llmGenerateResponse(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       negative_review: negativeReview,
@@ -842,6 +845,7 @@ export async function llmSummarizeReviews(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       reviews,
@@ -874,6 +878,7 @@ export async function llmChat(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       messages,
@@ -918,6 +923,7 @@ export async function llmChatWithContext(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       messages,

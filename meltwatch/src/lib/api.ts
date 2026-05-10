@@ -526,6 +526,71 @@ export async function scrapePages(
 }
 
 /**
+ * Run data cleaning pipeline on CSV data
+ */
+export async function runDataPipeline(
+  csvData: string[][],
+  onProgress?: (status: string) => void
+): Promise<{
+  success: boolean;
+  data?: {
+    report: string;
+    stdout: string;
+    stderr?: string;
+    returncode: number;
+  };
+  error?: string;
+}> {
+  onProgress?.("正在处理数据...");
+
+  const response = await fetch(`${API_BASE}/llm/run_pipeline`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ csv_data: csvData }),
+  });
+
+  return response.json();
+}
+
+/**
+ * Parse CSV file to 2D array
+ */
+export function parseCSV(file: File): Promise<string[][]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      const data = lines.map(line => {
+        const result: string[] = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === "," && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      });
+      resolve(data);
+    };
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
+
+/**
  * Get supported platforms
  */
 export async function getCrawlPlatforms(): Promise<{

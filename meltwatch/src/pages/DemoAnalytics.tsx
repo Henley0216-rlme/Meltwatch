@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ChevronDown, Search, Download, ThumbsUp, ThumbsDown, RefreshCw, Copy, ArrowUpDown, Filter, Tag, Check, Info, ExternalLink, Upload, type LucideIcon } from "lucide-react";
+import { ChevronDown, Search, Download, ThumbsUp, ThumbsDown, RefreshCw, Copy, ArrowUpDown, Filter, Tag, Check, Info, ExternalLink, Upload, type LucideIcon, Loader2, AlertCircle, CheckCircle, Link2 } from "lucide-react";
+import { scrapePages, runDataPipeline, parseCSV } from "@/lib/api";
 
 const TEAL = "#2BB7B8";
 
@@ -241,12 +242,87 @@ export function DemoAnalytics() {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Data input states
+  const [scrapeUrl, setScrapeUrl] = useState("");
+  const [scrapePlatform, setScrapePlatform] = useState("Generic");
+  const [scrapeLoading, setScrapeLoading] = useState(false);
+  const [scrapeResult, setScrapeResult] = useState<{success: boolean; message: string; count?: number} | null>(null);
+  const [pipelineLoading, setPipelineLoading] = useState(false);
+  const [pipelineResult, setPipelineResult] = useState<{success: boolean; message: string; report?: string} | null>(null);
+  const [showDataPanel, setShowDataPanel] = useState(false);
+
   const [sources,    setSources]    = useState<Set<string>>(new Set(["x","facebook","xiaohongshu","douyin","weixin","weibo"]));
   const [langs,      setLangs]      = useState<Set<string>>(new Set(["zh","en"]));
   const [locs,       setLocs]       = useState<Set<string>>(new Set(["cn","us","jp"]));
   const [sents,      setSents]      = useState<Set<string>>(new Set(["positive","neutral","negative"]));
   const [customCats, setCustomCats] = useState<Set<string>>(new Set(["battery"]));
   const [filterSet,  setFilterSet]  = useState("default");
+
+  // Handle CSV file upload and pipeline processing
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFile(file.name);
+    setPipelineLoading(true);
+    setPipelineResult(null);
+
+    try {
+      const csvData = await parseCSV(file);
+      if (csvData.length < 2) {
+        throw new Error(zh ? "CSV 文件数据不足" : "CSV file has insufficient data");
+      }
+
+      const result = await runDataPipeline(csvData);
+      if (result.success && result.data?.report) {
+        setPipelineResult({
+          success: true,
+          message: zh ? "数据清洗完成！" : "Data cleaning completed!",
+          report: result.data.report
+        });
+      } else {
+        throw new Error(result.error || (zh ? "处理失败" : "Processing failed"));
+      }
+    } catch (err) {
+      setPipelineResult({
+        success: false,
+        message: err instanceof Error ? err.message : (zh ? "处理失败" : "Processing failed")
+      });
+    } finally {
+      setPipelineLoading(false);
+    }
+  };
+
+  // Handle URL scraping
+  const handleScrape = async () => {
+    if (!scrapeUrl.trim()) return;
+
+    setScrapeLoading(true);
+    setScrapeResult(null);
+
+    try {
+      const urls = scrapeUrl.split("\n").filter(u => u.trim());
+      const result = await scrapePages(urls, scrapePlatform);
+
+      if (result.success) {
+        setScrapeResult({
+          success: true,
+          message: zh ? "爬取成功！" : "Scraping successful!",
+          count: result.data.total
+        });
+        setScrapeUrl("");
+      } else {
+        throw new Error(result.error || (zh ? "爬取失败" : "Scraping failed"));
+      }
+    } catch (err) {
+      setScrapeResult({
+        success: false,
+        message: err instanceof Error ? err.message : (zh ? "爬取失败" : "Scraping failed")
+      });
+    } finally {
+      setScrapeLoading(false);
+    }
+  };
 
   function toggleFilter(name: string) {
     setOpenFilter(p => p === name ? null : name);
@@ -422,11 +498,186 @@ export function DemoAnalytics() {
           </div>
         </FilterDropdown>
 
+        {/* Data Input Button */}
+        <button
+          onClick={() => setShowDataPanel(!showDataPanel)}
+          className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium border transition-colors flex-shrink-0"
+          style={{
+            backgroundColor: showDataPanel ? TEAL : "transparent",
+            borderColor: TEAL,
+            color: showDataPanel ? "white" : TEAL
+          }}
+        >
+          <Link2 size={14} />
+          {zh ? "数据入口" : "Data Input"}
+        </button>
+
         {/* Search button */}
-        <button className="ml-auto flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-semibold text-white hover:opacity-90 transition-opacity flex-shrink-0" style={{ backgroundColor: TEAL }}>
+        <button className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-semibold text-white hover:opacity-90 transition-opacity flex-shrink-0" style={{ backgroundColor: TEAL }}>
           {zh ? "搜索" : "Search"}
         </button>
       </div>
+
+      {/* ── Data Input Panel ── */}
+      {showDataPanel && (
+        <div className="border-b border-gray-100 bg-gray-50 p-4">
+          <div className="grid grid-cols-2 gap-6">
+            {/* CSV Upload Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${TEAL}15` }}>
+                  <Upload size={16} style={{ color: TEAL }} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-800">{zh ? "上传 CSV 数据" : "Upload CSV Data"}</h4>
+                  <p className="text-[11px] text-gray-500">{zh ? "上传评论 CSV，运行数据清洗管线" : "Upload review CSV, run data cleaning pipeline"}</p>
+                </div>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={pipelineLoading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors disabled:opacity-50"
+              >
+                {pipelineLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" style={{ color: TEAL }} />
+                    <span className="text-sm text-gray-600">{zh ? "处理中..." : "Processing..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} style={{ color: TEAL }} />
+                    <span className="text-sm text-gray-600">{zh ? "选择 CSV 文件" : "Select CSV File"}</span>
+                  </>
+                )}
+              </button>
+
+              {uploadedFile && !pipelineLoading && (
+                <p className="mt-2 text-xs text-gray-500 truncate">
+                  {zh ? "已选择：" : "Selected: "}{uploadedFile}
+                </p>
+              )}
+
+              {pipelineResult && (
+                <div className={`mt-3 p-3 rounded-lg ${pipelineResult.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
+                  <div className="flex items-start gap-2">
+                    {pipelineResult.success ? (
+                      <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium ${pipelineResult.success ? "text-green-700" : "text-red-700"}`}>
+                        {pipelineResult.message}
+                      </p>
+                      {pipelineResult.success && pipelineResult.report && (
+                        <details className="mt-2">
+                          <summary className="text-xs text-green-600 cursor-pointer hover:underline">
+                            {zh ? "查看报告内容" : "View report content"}
+                          </summary>
+                          <pre className="mt-2 p-2 bg-white rounded text-xs text-gray-600 overflow-auto max-h-48 whitespace-pre-wrap">
+                            {pipelineResult.report}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-3 text-[10px] text-gray-400">
+                {zh ? "支持格式：CSV (含 数据来源、评论时间、评论地点、评论正文 列)" : "Format: CSV with columns (数据来源, 评论时间, 评论地点, 评论正文)"}
+              </p>
+            </div>
+
+            {/* URL Scrape Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${TEAL}15` }}>
+                  <Link2 size={16} style={{ color: TEAL }} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-800">{zh ? "爬取网页数据" : "Scrape Web Data"}</h4>
+                  <p className="text-[11px] text-gray-500">{zh ? "输入 URL 列表，爬取评论数据" : "Enter URLs to scrape review data"}</p>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-xs text-gray-600 mb-1">{zh ? "平台类型" : "Platform"}</label>
+                <select
+                  value={scrapePlatform}
+                  onChange={(e) => setScrapePlatform(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-teal-500"
+                  style={{ "--tw-border-color": TEAL } as React.CSSProperties}
+                >
+                  <option value="Generic">Generic</option>
+                  <option value="Dianping">大众点评</option>
+                  <option value="JD">京东</option>
+                  <option value="Taobao">淘宝</option>
+                  <option value="Xiaohongshu">小红书</option>
+                  <option value="Douyin">抖音</option>
+                  <option value="Weibo">微博</option>
+                </select>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-xs text-gray-600 mb-1">{zh ? "URL 列表（每行一个）" : "URLs (one per line)"}</label>
+                <textarea
+                  value={scrapeUrl}
+                  onChange={(e) => setScrapeUrl(e.target.value)}
+                  placeholder={zh ? "https://example.com/review1\nhttps://example.com/review2" : "https://example.com/review1\nhttps://example.com/review2"}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-teal-500 resize-none"
+                  style={{ "--tw-border-color": TEAL } as React.CSSProperties}
+                  rows={3}
+                />
+              </div>
+
+              <button
+                onClick={handleScrape}
+                disabled={scrapeLoading || !scrapeUrl.trim()}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50"
+                style={{ backgroundColor: TEAL }}
+              >
+                {scrapeLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>{zh ? "爬取中..." : "Scraping..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <Link2 size={16} />
+                    <span>{zh ? "开始爬取" : "Start Scraping"}</span>
+                  </>
+                )}
+              </button>
+
+              {scrapeResult && (
+                <div className={`mt-3 p-3 rounded-lg ${scrapeResult.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
+                  <div className="flex items-center gap-2">
+                    {scrapeResult.success ? (
+                      <CheckCircle size={16} className="text-green-600 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle size={16} className="text-red-600 flex-shrink-0" />
+                    )}
+                    <p className={`text-sm font-medium ${scrapeResult.success ? "text-green-700" : "text-red-700"}`}>
+                      {scrapeResult.message}
+                      {scrapeResult.count !== undefined && ` (${scrapeResult.count} ${zh ? "条数据" : "items"})`}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Tabs ── */}
       <div className="flex items-center border-b border-gray-100 px-4 bg-white">
